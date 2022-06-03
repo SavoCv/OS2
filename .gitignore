@@ -1,0 +1,12 @@
+build/
+lib/
+kernel
+kernel.asm
+kernel.ld
+LICENSE
+Projektni zadatak 2022 v1.1.pdf
+Vezbe_07_2022.pptx
+.gdbinit
+.gdbinit.tmpl-riscv
+.idea/
+*~

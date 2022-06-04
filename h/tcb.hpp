@@ -12,6 +12,8 @@
 class TCB
 {
 public:
+    static void init();
+
     ~TCB() { delete[] stack; }
 
     bool isFinished() const { return finished; }

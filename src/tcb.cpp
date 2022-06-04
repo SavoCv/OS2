@@ -46,3 +46,8 @@ void TCB::operator delete(void * ptr)
 {
     kmem_free(ptr);
 }
+
+void TCB::init()
+{
+    running = createThread(nullptr, nullptr, nullptr);
+}

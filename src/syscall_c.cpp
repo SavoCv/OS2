@@ -12,7 +12,7 @@ void* mem_alloc(size_t size)
 {
     uint64 ra0 = 0;
     __asm__ volatile("mv %[ra0], a0" : [ra0] "=r"(ra0));
-    ra0 = (ra0 - 1) / MEM_BLOCK_SIZE + 1;
+    ra0 = (ra0 - 1 + 16) / MEM_BLOCK_SIZE + 1;
     __asm__ volatile("mv a1, %[ra0]" : :[ra0] "r"(ra0));
     __asm__ volatile("addi a0, zero, 0x1");
    // __asm__ volatile ("mul a1, a1, %[BLOCK]" : : [BLOCK] "r"(MEM_BLOCK_SIZE));

@@ -18,7 +18,7 @@ void Riscv::init()
     *sys_stack = kmem_alloc(DEFAULT_STACK_SIZE);
     *sys_stack = (char*) *sys_stack + DEFAULT_STACK_SIZE - 1;
     w_stvec((uint64) &supervisorTrap);
-    //Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
+    Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 }
 
 void Riscv::handle_thread_dispatch() {
@@ -62,7 +62,11 @@ void Riscv::handle_thread_create() {
     __asm__ volatile("mv %[ra3], a3" : [ra3] "=r"(arg));
     __asm__ volatile("mv %[ra4], a4" : [ra4] "=r"(stack_space));
     *handle = TCB::createThread(start_routine, stack_space, arg);
-    __asm__ volatile("sd a0, 80(sp)");
+    uint64 ra0 = 0;
+    __asm__ volatile("mv %[ra0], a0" : [ra0] "=r"(ra0));
+    uint64 *x;
+    x = *user_stack;
+    x[10] = ra0;
 }
 
 void Riscv::handle_thread_exit() {

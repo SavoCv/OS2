@@ -43,6 +43,8 @@ void test_allocator() {
     println(HEAP_START_ADDR);
     print("Heap end: ");
     println(HEAP_END_ADDR);
+    print("Mem block size: ");
+    println(MEM_BLOCK_SIZE);
 
     MemoryAllocator* m = MemoryAllocator::getAllocator();
     MemoryAllocator* m2 = MemoryAllocator::getAllocator();

@@ -7,9 +7,14 @@
 
 #include "../lib/hw.h"
 
+class TCB;
+typedef TCB* thread_t;
+
 class Riscv
 {
 public:
+
+    static void init();
 
     // pop sstatus.spp and sstatus.spie bits (has to be a non inline function)
     static void popSppSpie();
@@ -84,6 +89,19 @@ private:
     // supervisor trap handler
     static void handleSupervisorTrap();
 
+    static void handle_thread_dispatch();
+
+    static void handle_mem_alloc();
+
+    static void handle_mem_free();
+
+    static void handle_thread_create();
+
+    static void handle_thread_exit();
+
+    static void** sys_stack;
+
+    static uint64** user_stack;
 };
 
 inline uint64 Riscv::r_scause()

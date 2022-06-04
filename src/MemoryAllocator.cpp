@@ -4,7 +4,6 @@
 
 #include "../h/MemoryAllocator.h"
 #include "../lib/hw.h"
-#include "../h/TESTprint.hpp"
 
 void* MemoryAllocator::operator new(size_t sz) {
     return (void*) HEAP_START_ADDR;
@@ -47,7 +46,6 @@ void *MemoryAllocator::allocate(size_t vel) {
     lower_bound(first_free, curr, prev, vel);
     if(!curr || curr->sz < vel)
         return nullptr;
-    println(curr);
 
     //Ulancavanje u listu slobodnih fragmenata
     unlink(first_free, curr, prev);

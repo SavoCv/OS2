@@ -8,15 +8,16 @@
 #include "../h/TESTprint.hpp"
 #include "../h/MemoryAllocator.h"
 
-void** Riscv::sys_stack = nullptr;
-uint64** Riscv::user_stack = nullptr;
+void* Riscv::sysStack = nullptr;
+void* Riscv::initialSysStack = nullptr;
+uint64* Riscv::processorContext = nullptr;
 
 void Riscv::init()
 {
-    sys_stack = (void**) kmem_alloc(sizeof(void **));
-    user_stack = (uint64**) (kmem_alloc(sizeof(uint64**)));
-    *sys_stack = kmem_alloc(DEFAULT_STACK_SIZE);
-    *sys_stack = (char*) *sys_stack + DEFAULT_STACK_SIZE - 1;
+    TCB::init();
+    initialSysStack = sysStack = (void*) kmem_alloc(DEFAULT_STACK_SIZE);
+    sysStack = (char*) sysStack + DEFAULT_STACK_SIZE;
+    processorContext = TCB::running->context.processorContext;
     w_stvec((uint64) &supervisorTrap);
     //Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 }
@@ -28,46 +29,38 @@ void Riscv::handle_thread_dispatch() {
 
 void Riscv::handle_mem_alloc()
 {
-    uint64 ra1 = 0;
-    __asm__ volatile("mv %[ra1], a1" : [ra1] "=r"(ra1));
+    //uint64 ra1 = 0;
+    //__asm__ volatile("mv %[ra1], a1" : [ra1] "=r"(ra1));
     MemoryAllocator *ma = MemoryAllocator::getAllocator();
-    ma->allocate(ra1);
+    ma->allocate(TCB::running->context.processorContext[11]);
     uint64 ra0 = 0;
     __asm__ volatile("mv %[ra0], a0" : [ra0] "=r"(ra0));
-    uint64 *x;
-    x = *user_stack;
-    x[10] = ra0;
+    processorContext[10] = ra0;
 }
 
 void Riscv::handle_mem_free()
 {
-    uint64 ra1 = 0;
-    __asm__ volatile("mv %[ra1], a1" : [ra1] "=r"(ra1));
+    //uint64 ra1 = 0;
+    //__asm__ volatile("mv %[ra1], a1" : [ra1] "=r"(ra1));
     MemoryAllocator *ma = MemoryAllocator::getAllocator();
-    ma->free((void*) ra1);
+    ma->free((void*) TCB::running->context.processorContext[11]);
     uint64 ra0 = 0;
     __asm__ volatile("mv %[ra0], a0" : [ra0] "=r"(ra0));
-    uint64 *x;
-    x = *user_stack;
-    x[10] = ra0;
+    processorContext[10] = ra0;
 }
 
 void Riscv::handle_thread_create() {
-    thread_t* handle = nullptr;
-    void (*start_routine)(void*);
-    void *arg;
-    void *stack_space;
-    __asm__ volatile("mv %[ra1], a1" : [ra1] "=r"(handle));
-    __asm__ volatile("mv %[ra2], a2" : [ra2] "=r"(start_routine));//mv a0, a2
-    __asm__ volatile("mv %[ra4], a4" : [ra4] "=r"(stack_space));//mv a1, a4
-    __asm__ volatile("mv %[ra3], a3" : [ra3] "=r"(arg));//mv a2, a3
+    thread_t* handle = (thread_t*) TCB::running->context.processorContext[11];
+    void (*start_routine)(void*) = (void(*)(void*))TCB::running->context.processorContext[12];
+    void *arg = (void*) TCB::running->context.processorContext[13];
+    void *stack_space = (void*) TCB::running->context.processorContext[14];
 
-    println("{");
+    /*println("{");
     println((void*)handle);
     println((void*)start_routine);
     println((void*)stack_space);
     println((void*)arg);
-    println("}");
+    println("}");*/
 
     *handle = TCB::createThread(start_routine, stack_space, arg);
     uint64 ra0 = 0;
@@ -75,9 +68,7 @@ void Riscv::handle_thread_create() {
         ra0 = 0;
     else
         ra0 = -16;
-    uint64 *x;
-    x = *user_stack;
-    x[10] = ra0;
+    processorContext[10] = ra0;
 }
 
 void Riscv::handle_thread_exit() {
@@ -97,8 +88,8 @@ void Riscv::handleSupervisorTrap()
     if (scause == 0x0000000000000008UL || scause == 0x0000000000000009UL)
     {
         // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
-
-        TCB::running->context.sepc = r_sepc() + 4;
+        w_sepc(r_sepc() + 4);
+        TCB::running->context.sepc = r_sepc();
         uint64 sstatus = r_sstatus();
         uint64 ra0 = 0;
         /*TCB::timeSliceCounter = 0;

@@ -100,9 +100,11 @@ private:
 
     static void handle_thread_exit();
 
-    static void** sys_stack;
+    static uint64* processorContext;
 
-    static uint64** user_stack;
+    static void* sysStack;
+
+    static void* initialSysStack;
 };
 
 inline uint64 Riscv::r_scause()

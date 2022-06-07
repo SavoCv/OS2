@@ -17,7 +17,7 @@ MemoryAllocator *MemoryAllocator::getAllocator() {
 }
 
 MemoryAllocator::MemoryAllocator() {
-    first_free = (Fragment*) ((char*)HEAP_START_ADDR + sizeof(MemoryAllocator));
+    first_free = (Fragment*) ((char*)HEAP_START_ADDR + MEM_BLOCK_SIZE);
     first_free->next = nullptr;
     first_free->sz = (char*)HEAP_END_ADDR - (char*)HEAP_START_ADDR;
     first_reserved = nullptr;
@@ -67,10 +67,10 @@ void *MemoryAllocator::allocate(size_t vel) {
     lower_bound(first_reserved, i, j, curr);
     link(first_reserved, i, j, curr);
 
-    print((void*)((char*) curr + sizeof(Fragment)));
-    printString(" ");
-    printInteger(vel);
-    printString("\n");
+    //print((void*)((char*) curr + sizeof(Fragment)));
+    //printString(" ");
+    //printInteger(vel);
+    //printString("\n");
     return (char*) curr + sizeof(Fragment);
 }
 

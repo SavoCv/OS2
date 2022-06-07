@@ -7,7 +7,9 @@
 
 #include "../lib/hw.h"
 #include "scheduler.hpp"
+#include "MemoryAllocator.h"
 #include "TESTprint.hpp"
+#include "riscv.hpp"
 
 using size_t_ = decltype(sizeof(0));
 
@@ -16,6 +18,8 @@ class TCB
 {
 public:
     static void init();
+
+    static void finalize();
 
     ~TCB() { delete[] stack; }
 
@@ -38,25 +42,12 @@ public:
     void operator delete(void * ptr);
 
 private:
-    TCB(Body body, uint64 timeSlice, void* stack_space, void* arg) :
-            body(body),
-            stack(body != nullptr ? (uint64*) stack_space : nullptr),
-            context({(uint64) &threadWrapper,
-                     stack != nullptr ?  (uint64**) &stack_space : nullptr
-                    }),
-            timeSlice(timeSlice),
-            arg(arg),
-            finished(false)
-    {
-        print(stack_space);
-        printString(" - \n");
-        if (body != nullptr) { Scheduler::put(this); }
-    }
+    TCB(Body body, uint64 timeSlice, void* stack_space, void* arg);
 
     struct Context
     {
         uint64 sepc;
-        uint64** sp;
+        uint64* processorContext;
     };
 
     Body body;
@@ -65,6 +56,7 @@ private:
     uint64 timeSlice;
     void *arg;
     bool finished;
+
 
     friend class Riscv;
 

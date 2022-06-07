@@ -14,8 +14,8 @@ TCB *Scheduler::get()
 
 void Scheduler::put(TCB *ccb)
 {
-    printString("#");
-    println((void*)&readyThreadQueue);
+    //printString("#");
+    //println((void*)&readyThreadQueue);
     readyThreadQueue.addLast(ccb);
-    printString("$");
+    //printString("$");
 }

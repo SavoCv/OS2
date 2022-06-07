@@ -34,7 +34,7 @@ int mem_free(void* ptr)
 int thread_create(thread_t* handle, void (*start_routine)(void*), void* arg)
 {
     void * stack_space = mem_alloc(DEFAULT_STACK_SIZE);
-    stack_space = (char*) stack_space + DEFAULT_STACK_SIZE - 1 - 256;
+    stack_space = (char*) stack_space + DEFAULT_STACK_SIZE;
     __asm__ volatile("mv a1, %[ss]" : : [ss] "r" (handle));
     __asm__ volatile("mv a2, %[ss]" : : [ss] "r" (start_routine));
     __asm__ volatile("mv a3, %[ss]" : : [ss] "r" (arg));

@@ -12,6 +12,29 @@ TCB *TCB::running = nullptr;
 
 uint64 TCB::timeSliceCounter = 0;
 
+TCB::TCB(Body body, uint64 timeSlice, void* stack_space, void* arg) :
+    body(body),
+    stack(body != nullptr ? (uint64*) stack_space : nullptr),
+    timeSlice(timeSlice),
+    arg(arg),
+    finished(false)
+{
+    //print(stack_space);
+    //printString(" - \n");
+    if (body != nullptr) {
+        Scheduler::put(this);
+        context.sepc = (uint64) &threadWrapper;
+    }
+
+    context.processorContext = (uint64*) kmem_alloc(32 * sizeof(uint64));
+    context.processorContext[2] = (uint64) stack_space;
+}
+
+void TCB::init()
+{
+    running = createThread(nullptr, nullptr, nullptr);
+}
+
 TCB *TCB::createThread(Body body, void* stack_space, void* param)
 {
     return new TCB(body, TIME_SLICE, stack_space, param);
@@ -27,10 +50,10 @@ void TCB::dispatch()
 {
     TCB *old = running;
     if (!old->isFinished()) {
-        printString("<");
-        println((void*)old);
+        //printString("<");
+        //println((void*)old);
         Scheduler::put(old);
-        printString(">");
+        //printString(">");
     }
     running = Scheduler::get();
 
@@ -39,9 +62,8 @@ void TCB::dispatch()
 
 void TCB::threadWrapper()
 {
+    //TODO some things
     //Riscv::popSppSpie();
-    TCB *t = running;
-    t += 0;
     running->body(running->arg);
     running->setFinished(true);
     TCB::yield();
@@ -56,14 +78,9 @@ void TCB::operator delete(void * ptr)
     kmem_free(ptr);
 }
 
-void TCB::init()
-{
-    running = createThread(nullptr, nullptr, nullptr);
-}
-
 void TCB::contextSwitch(TCB::Context *oldContext, TCB::Context *runningContext) {
     oldContext->sepc = Riscv::r_sepc();
-    oldContext->sp = Riscv::user_stack;
-    Riscv::user_stack = runningContext->sp;
+    //oldContext->processorContext = Riscv::processorContext; // Cak ni ne mora
+    Riscv::processorContext = runningContext->processorContext;
     Riscv::w_sepc(runningContext->sepc);
 }

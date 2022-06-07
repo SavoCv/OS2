@@ -8,7 +8,6 @@ void userMain();
 
 int main()
 {
-    TCB::init();
     Riscv::init();
     userMain();
 

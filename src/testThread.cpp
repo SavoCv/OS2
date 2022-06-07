@@ -20,6 +20,8 @@ void workerA(void* ptr_n)
             //busy wait
         }
         printString("A: ");
+        printInteger(n);
+        printString(" ");
         printInteger((uint64) i);
         printString("\n");
         if(i == 9)
@@ -29,8 +31,8 @@ void workerA(void* ptr_n)
             //thread_exit();
             return;
         }
-        printString("a dsp\n");
-        thread_dispatch();
+        //printString("a dsp\n");
+        //thread_dispatch();
     }
     a_finished++;
     printString("a finished\n");
@@ -40,23 +42,23 @@ int test_thread()
 {
     thread_t threads[2];
     int *n = (int*) mem_alloc(sizeof(int) * 2);
-    print("Test thread start\n");
-    print(n);
-    print("\n");
+    printString("Test thread start\n");
+    //print(n);
+    printString("\n");
     n[0] = 100000;
     n[1] = 200000;
-    print("A creating\n");
+    printString("A creating\n");
     if(thread_create(&threads[0], workerA, &n[0]) < 0)
-        print("GRESKA: A\n");
+        printString("GRESKA: A\n");
     else
-        print("A created\n");
+        printString("A created\n");
     if(thread_create(&threads[1], workerA, &n[1]) < 0)
-        print("GRESKA: B\n");
+        printString("GRESKA: B\n");
     else
-        print("B created\n");
-    print("Test thread nit\n");
+        printString("B created\n");
+    printString("Test thread nit\n");
     while(a_finished < 2) {
-        print("m dsp\n");
+        printString("m dsp\n");
         thread_dispatch();
     }
 

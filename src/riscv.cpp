@@ -19,7 +19,7 @@ void Riscv::init()
     sysStack = (char*) sysStack + DEFAULT_STACK_SIZE;
     processorContext = TCB::running->context.processorContext;
     w_stvec((uint64) &supervisorTrap);
-    //Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
+    Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 }
 
 void Riscv::handle_thread_dispatch() {

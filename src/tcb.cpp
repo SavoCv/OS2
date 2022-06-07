@@ -27,7 +27,11 @@ TCB::TCB(Body body, uint64 timeSlice, void* stack_space, void* arg) :
     }
 
     context.processorContext = (uint64*) kmem_alloc(32 * sizeof(uint64));
+    if(body != nullptr)
+        for(int i = 0; i < 32; ++i)
+            context.processorContext[i] = running->context.processorContext[i];
     context.processorContext[2] = (uint64) stack_space;
+
 }
 
 void TCB::init()

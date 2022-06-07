@@ -45,8 +45,8 @@ int test_thread()
     printString("Test thread start\n");
     //print(n);
     printString("\n");
-    n[0] = 100000;
-    n[1] = 200000;
+    n[0] = 100000000;
+    n[1] = 200000000;
     printString("A creating\n");
     if(thread_create(&threads[0], workerA, &n[0]) < 0)
         printString("GRESKA: A\n");

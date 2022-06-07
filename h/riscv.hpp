@@ -13,6 +13,7 @@ typedef TCB* thread_t;
 class Riscv
 {
 public:
+    friend  class TCB;
 
     static void init();
 

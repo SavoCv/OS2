@@ -18,7 +18,7 @@ void Riscv::init()
     *sys_stack = kmem_alloc(DEFAULT_STACK_SIZE);
     *sys_stack = (char*) *sys_stack + DEFAULT_STACK_SIZE - 1;
     w_stvec((uint64) &supervisorTrap);
-    Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
+    //Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 }
 
 void Riscv::handle_thread_dispatch() {
@@ -58,12 +58,23 @@ void Riscv::handle_thread_create() {
     void *arg;
     void *stack_space;
     __asm__ volatile("mv %[ra1], a1" : [ra1] "=r"(handle));
-    __asm__ volatile("mv %[ra2], a2" : [ra2] "=r"(start_routine));
-    __asm__ volatile("mv %[ra3], a3" : [ra3] "=r"(arg));
-    __asm__ volatile("mv %[ra4], a4" : [ra4] "=r"(stack_space));
+    __asm__ volatile("mv %[ra2], a2" : [ra2] "=r"(start_routine));//mv a0, a2
+    __asm__ volatile("mv %[ra4], a4" : [ra4] "=r"(stack_space));//mv a1, a4
+    __asm__ volatile("mv %[ra3], a3" : [ra3] "=r"(arg));//mv a2, a3
+
+    println("{");
+    println((void*)handle);
+    println((void*)start_routine);
+    println((void*)stack_space);
+    println((void*)arg);
+    println("}");
+
     *handle = TCB::createThread(start_routine, stack_space, arg);
     uint64 ra0 = 0;
-    __asm__ volatile("mv %[ra0], a0" : [ra0] "=r"(ra0));
+    if(handle)
+        ra0 = 0;
+    else
+        ra0 = -16;
     uint64 *x;
     x = *user_stack;
     x[10] = ra0;
@@ -87,7 +98,7 @@ void Riscv::handleSupervisorTrap()
     {
         // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
 
-        uint64 sepc = r_sepc() + 4;
+        TCB::running->context.sepc = r_sepc() + 4;
         uint64 sstatus = r_sstatus();
         uint64 ra0 = 0;
         /*TCB::timeSliceCounter = 0;
@@ -117,7 +128,7 @@ void Riscv::handleSupervisorTrap()
 
         }
         w_sstatus(sstatus);
-        w_sepc(sepc);
+        w_sepc(TCB::running->context.sepc);
 
     } else if (scause == 0x8000000000000001UL)
     {
@@ -125,12 +136,12 @@ void Riscv::handleSupervisorTrap()
         TCB::timeSliceCounter++;
         if (TCB::timeSliceCounter >= TCB::running->getTimeSlice())
         {
-            uint64 sepc = r_sepc();
+            TCB::running->context.sepc = r_sepc();
             uint64 sstatus = r_sstatus();
             TCB::timeSliceCounter = 0;
             TCB::dispatch();
             w_sstatus(sstatus);
-            w_sepc(sepc);
+            w_sepc(TCB::running->context.sepc);
         }
         mc_sip(SIP_SSIP);
     } else if (scause == 0x8000000000000009UL)

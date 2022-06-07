@@ -49,12 +49,12 @@ namespace TA2 {
 
         int *x, *y, *z;
 
-        x = allocate_arr(10, "x");
+        x = allocate_arr(15, "x");
 
-        y = allocate_arr(20, "y");
+        y = allocate_arr(12, "y");
 
-        print_arr(x, 10, "x");
-        print_arr(y, 20, "y");
+        print_arr(x, 15, "x");
+        print_arr(y, 12, "y");
         println("");
 
         free(x, "x");

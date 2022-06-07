@@ -14,7 +14,7 @@ extern "C" void test_allocator_c_api();
 
 enum Testing{Allocator, Allocator2, Allocator_c_api, Thread};
 
-const Testing t = Allocator2;
+const Testing t = Thread;
 
 void userMain() {
     switch (t) {

@@ -12,7 +12,7 @@ class TCB;
 class Scheduler
 {
 private:
-    static List<TCB> readyThreadQueue;
+    static List readyThreadQueue;
 
 public:
     static TCB *get();

@@ -3,8 +3,9 @@
 //
 
 #include "../h/scheduler.hpp"
+#include "../h/TESTprint.hpp"
 
-List<TCB> Scheduler::readyThreadQueue;
+List Scheduler::readyThreadQueue;
 
 TCB *Scheduler::get()
 {
@@ -13,5 +14,8 @@ TCB *Scheduler::get()
 
 void Scheduler::put(TCB *ccb)
 {
+    printString("#");
+    println((void*)&readyThreadQueue);
     readyThreadQueue.addLast(ccb);
+    printString("$");
 }

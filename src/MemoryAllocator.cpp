@@ -4,6 +4,7 @@
 
 #include "../h/MemoryAllocator.h"
 #include "../lib/hw.h"
+#include "../h/TESTprint.hpp"
 
 void* MemoryAllocator::operator new(size_t sz) {
     return (void*) HEAP_START_ADDR;
@@ -66,6 +67,10 @@ void *MemoryAllocator::allocate(size_t vel) {
     lower_bound(first_reserved, i, j, curr);
     link(first_reserved, i, j, curr);
 
+    print((void*)((char*) curr + sizeof(Fragment)));
+    printString(" ");
+    printInteger(vel);
+    printString("\n");
     return (char*) curr + sizeof(Fragment);
 }
 

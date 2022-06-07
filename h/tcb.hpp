@@ -7,6 +7,9 @@
 
 #include "../lib/hw.h"
 #include "scheduler.hpp"
+#include "TESTprint.hpp"
+
+using size_t_ = decltype(sizeof(0));
 
 // Thread Control Block
 class TCB
@@ -30,7 +33,7 @@ public:
 
     static TCB *running;
 
-    void*  operator new(size_t sz);
+    void*  operator new(size_t_ sz);
 
     void operator delete(void * ptr);
 
@@ -39,19 +42,21 @@ private:
             body(body),
             stack(body != nullptr ? (uint64*) stack_space : nullptr),
             context({(uint64) &threadWrapper,
-                     stack != nullptr ? (uint64) stack_space : 0
+                     stack != nullptr ?  (uint64**) &stack_space : nullptr
                     }),
             timeSlice(timeSlice),
             arg(arg),
             finished(false)
     {
+        print(stack_space);
+        printString(" - \n");
         if (body != nullptr) { Scheduler::put(this); }
     }
 
     struct Context
     {
-        uint64 ra;
-        uint64 sp;
+        uint64 sepc;
+        uint64** sp;
     };
 
     Body body;

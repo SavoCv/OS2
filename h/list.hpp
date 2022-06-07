@@ -4,8 +4,13 @@
 
 #ifndef OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_LIST_HPP
 #define OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_LIST_HPP
+#include "MemoryAllocator.h"
 
-template<typename T>
+using size_t_ = decltype(sizeof(0));
+
+class TCB;
+using T = TCB;
+
 class List
 {
 private:
@@ -15,6 +20,14 @@ private:
         Elem *next;
 
         Elem(T *data, Elem *next) : data(data), next(next) {}
+
+        void*  operator new(size_t_ sz){
+            return kmem_alloc(sz);
+        }
+
+        void operator delete(void * ptr){
+            kmem_free(ptr);
+        }
     };
 
     Elem *head, *tail;
@@ -22,20 +35,25 @@ private:
 public:
     List() : head(0), tail(0) {}
 
-    List(const List<T> &) = delete;
+    List(const List &) = delete;
 
-    List<T> &operator=(const List<T> &) = delete;
+    List &operator=(const List &) = delete;
 
     void addFirst(T *data)
     {
-        Elem *elem = new Elem(data, head);
+        Elem *elem = (Elem*) kmem_alloc(sizeof(Elem));
+        elem->data = data;
+        elem->next = head;
+
         head = elem;
         if (!tail) { tail = head; }
     }
 
     void addLast(T *data)
     {
-        Elem *elem = new Elem(data, 0);
+        Elem *elem = (Elem*)kmem_alloc(sizeof(Elem));
+        elem->data = data;
+        elem->next = 0;
         if (tail)
         {
             tail->next = elem;
@@ -55,7 +73,7 @@ public:
         if (!head) { tail = 0; }
 
         T *ret = elem->data;
-        delete elem;
+        kmem_free(elem);
         return ret;
     }
 
@@ -81,7 +99,7 @@ public:
         tail = prev;
 
         T *ret = elem->data;
-        delete elem;
+        kmem_free(elem);
         return ret;
     }
 

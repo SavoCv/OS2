@@ -12,12 +12,14 @@ class TCB;
 class Scheduler
 {
 private:
-    static List readyThreadQueue;
+    static List<TCB> readyThreadQueue;
 
 public:
     static TCB *get();
 
     static void put(TCB *ccb);
+
+    static bool has_n_threads(int n);
 
 };
 

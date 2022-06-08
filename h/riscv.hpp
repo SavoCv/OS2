@@ -10,6 +10,9 @@
 class TCB;
 typedef TCB* thread_t;
 
+class KSemaphore;
+typedef KSemaphore* sem_t;
+
 class Riscv
 {
 public:
@@ -99,6 +102,14 @@ private:
     static void handle_thread_create();
 
     static void handle_thread_exit();
+
+    static void handle_sem_create();
+
+    static void handle_sem_close();
+
+    static void handle_sem_wait();
+
+    static void handle_sem_signal();
 
     static uint64* processorContext;
 

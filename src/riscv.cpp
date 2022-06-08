@@ -7,6 +7,7 @@
 #include "../lib/console.h"
 #include "../h/TESTprint.hpp"
 #include "../h/MemoryAllocator.h"
+#include "../h/KSemaphore.hpp"
 
 void* Riscv::sysStack = nullptr;
 void* Riscv::initialSysStack = nullptr;
@@ -82,6 +83,32 @@ void Riscv::popSppSpie()
     __asm__ volatile ("sret");
 }
 
+void Riscv::handle_sem_create()
+{
+    sem_t *handle = (sem_t *)processorContext[11];
+    *handle = new KSemaphore((unsigned) processorContext[12]);
+    processorContext[10] = 0;
+}
+
+void Riscv::handle_sem_close()
+{
+    sem_t handle = (sem_t)processorContext[11];
+    delete handle;
+    processorContext[10] = 0;
+}
+
+void Riscv::handle_sem_wait()
+{
+    sem_t handle = (sem_t)processorContext[11];
+    processorContext[10] = handle->wait();
+}
+
+void Riscv::handle_sem_signal()
+{
+    sem_t handle = (sem_t)processorContext[11];
+    processorContext[10] = handle->signal();
+}
+
 void Riscv::handleSupervisorTrap()
 {
     uint64 scause = r_scause();
@@ -90,7 +117,7 @@ void Riscv::handleSupervisorTrap()
         // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
         w_sepc(r_sepc() + 4);
         TCB::running->context.sepc = r_sepc();
-        uint64 sstatus = r_sstatus();
+        TCB::running->context.sstatus = r_sstatus();
         uint64 ra0 = 0;
         /*TCB::timeSliceCounter = 0;
         TCB::dispatch();*/
@@ -116,9 +143,24 @@ void Riscv::handleSupervisorTrap()
                 handle_thread_dispatch();
                 break;
 
+            case 0x21:
+                handle_sem_create();
+                break;
+
+            case 0x22:
+                handle_sem_close();
+                break;
+
+            case 0x23:
+                handle_sem_wait();
+                break;
+
+            case 0x24:
+                handle_sem_signal();
+                break;
 
         }
-        w_sstatus(sstatus);
+        w_sstatus(TCB::running->context.sstatus);
         w_sepc(TCB::running->context.sepc);
 
     } else if (scause == 0x8000000000000001UL)
@@ -128,10 +170,10 @@ void Riscv::handleSupervisorTrap()
         if (TCB::timeSliceCounter >= TCB::running->getTimeSlice())
         {
             TCB::running->context.sepc = r_sepc();
-            uint64 sstatus = r_sstatus();
+            TCB::running->context.sstatus = r_sstatus();
             TCB::timeSliceCounter = 0;
             TCB::dispatch();
-            w_sstatus(sstatus);
+            w_sstatus(TCB::running->context.sstatus);
             w_sepc(TCB::running->context.sepc);
         }
         mc_sip(SIP_SSIP);
@@ -139,6 +181,9 @@ void Riscv::handleSupervisorTrap()
     {
         // interrupt: yes; cause code: supervisor external interrupt (PLIC; could be keyboard)
         console_handler();
+    } else if (scause == 0x2)
+    {
+        handle_thread_exit();
     } else
     {
         // unexpected trap cause

@@ -8,12 +8,13 @@
 #include "../h/syscall_c.h"
 
 int a_finished = 0;
+sem_t a_mutex;
 
 void workerA(void* ptr_n)
 {
     int n = *(int*)ptr_n;
     printString("In A\n");
-    for(int i = 1; i <= 10; ++i)
+    for(int i = 1; true ; ++i)
     {
         for(int j = 0; j < n; ++j)
         {
@@ -24,22 +25,24 @@ void workerA(void* ptr_n)
         printString(" ");
         printInteger((uint64) i);
         printString("\n");
-        if(i == 9)
+        if(i == 10)
         {
-            a_finished++;
             printString("a finished\n");
-            //thread_exit();
-            return;
+            sem_wait(a_mutex);
+            a_finished++;
+            sem_signal(a_mutex);
+            thread_exit();
         }
-        //printString("a dsp\n");
-        //thread_dispatch();
     }
+    sem_wait(a_mutex);
     a_finished++;
+    sem_signal(a_mutex);
     printString("a finished\n");
 }
 
 int test_thread()
 {
+    sem_open(&a_mutex, 1);
     thread_t threads[2];
     int *n = (int*) mem_alloc(sizeof(int) * 2);
     printString("Test thread start\n");
@@ -47,7 +50,6 @@ int test_thread()
     printString("\n");
     n[0] = 100000000;
     n[1] = 200000000;
-    printString("A creating\n");
     if(thread_create(&threads[0], workerA, &n[0]) < 0)
         printString("GRESKA: A\n");
     else
@@ -61,6 +63,7 @@ int test_thread()
         printString("m dsp\n");
         thread_dispatch();
     }
+    printString("m finished\n");
 
     return 0;
 }

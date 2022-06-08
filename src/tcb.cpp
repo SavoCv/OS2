@@ -60,14 +60,20 @@ void TCB::dispatch()
         //printString(">");
     }
     running = Scheduler::get();
+    TCB::contextSwitch(&old->context, &running->context);
+}
 
+void TCB::dispatch_without_puting()
+{
+    TCB *old = running;
+    running = Scheduler::get();
     TCB::contextSwitch(&old->context, &running->context);
 }
 
 void TCB::threadWrapper()
 {
     //TODO some things
-    //Riscv::popSppSpie();
+    Riscv::popSppSpie();
     running->body(running->arg);
     running->setFinished(true);
     TCB::yield();

@@ -5,7 +5,7 @@
 #include "../h/scheduler.hpp"
 #include "../h/TESTprint.hpp"
 
-List Scheduler::readyThreadQueue;
+List<TCB> Scheduler::readyThreadQueue;
 
 TCB *Scheduler::get()
 {
@@ -18,4 +18,8 @@ void Scheduler::put(TCB *ccb)
     //println((void*)&readyThreadQueue);
     readyThreadQueue.addLast(ccb);
     //printString("$");
+}
+
+bool Scheduler::has_n_threads(int n) {
+    return readyThreadQueue.has_n_elements(n);
 }

@@ -9,8 +9,8 @@
 using size_t_ = decltype(sizeof(0));
 
 class TCB;
-using T = TCB;
 
+template <class T>
 class List
 {
 private:
@@ -35,9 +35,9 @@ private:
 public:
     List() : head(0), tail(0) {}
 
-    List(const List &) = delete;
+    List(const List<T> &) = delete;
 
-    List &operator=(const List &) = delete;
+    List<T> &operator=(const List &) = delete;
 
     void addFirst(T *data)
     {
@@ -107,6 +107,16 @@ public:
     {
         if (!tail) { return 0; }
         return tail->data;
+    }
+
+    bool has_n_elements(int n) {
+        for (Elem *curr = head; curr; curr = curr->next)
+        {
+            --n;
+            if(n < 0)
+                return false;
+        }
+        return n == 0;
     }
 };
 

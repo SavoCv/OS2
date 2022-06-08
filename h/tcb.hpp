@@ -19,8 +19,6 @@ class TCB
 public:
     static void init();
 
-    static void finalize();
-
     ~TCB() { delete[] stack; }
 
     bool isFinished() const { return finished; }
@@ -35,6 +33,10 @@ public:
 
     static void yield();
 
+    static void dispatch();
+
+    static void dispatch_without_puting();
+
     static TCB *running;
 
     void*  operator new(size_t_ sz);
@@ -48,6 +50,7 @@ private:
     {
         uint64 sepc;
         uint64* processorContext;
+        uint64 sstatus;
     };
 
     Body body;
@@ -57,14 +60,11 @@ private:
     void *arg;
     bool finished;
 
-
     friend class Riscv;
 
     static void threadWrapper();
 
     static void contextSwitch(Context *oldContext, Context *runningContext);
-
-    static void dispatch();
 
     static uint64 timeSliceCounter;
 

@@ -12,7 +12,7 @@ TCB *TCB::running = nullptr;
 
 uint64 TCB::timeSliceCounter = 0;
 
-TCB::TCB(Body body, uint64 timeSlice, void* stack_space, void* arg) :
+TCB::TCB(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p) :
     body(body),
     stack(body != nullptr ? (uint64*) stack_space : nullptr),
     timeSlice(timeSlice),
@@ -31,7 +31,9 @@ TCB::TCB(Body body, uint64 timeSlice, void* stack_space, void* arg) :
         for(int i = 0; i < 32; ++i)
             context.processorContext[i] = running->context.processorContext[i];
     context.processorContext[2] = (uint64) stack_space;
-
+    context.sstatus = Riscv::r_sstatus();
+    if(p)
+        context.sstatus &= ~Riscv::SSTATUS_SPP;
 }
 
 void TCB::init()
@@ -73,7 +75,7 @@ void TCB::dispatch_without_puting()
 void TCB::threadWrapper()
 {
     //TODO some things
-    Riscv::popSppSpie();
+    //Riscv::popSppSpie();
     running->body(running->arg);
     running->setFinished(true);
     TCB::yield();

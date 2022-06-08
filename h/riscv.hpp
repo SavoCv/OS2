@@ -6,6 +6,7 @@
 #define OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_RISCV_HPP
 
 #include "../lib/hw.h"
+#include "SleepList.h"
 
 class TCB;
 typedef TCB* thread_t;
@@ -88,6 +89,8 @@ public:
     // supervisor trap
     static void supervisorTrap();
 
+    static SleepList sl;
+
 private:
 
     // supervisor trap handler
@@ -111,11 +114,15 @@ private:
 
     static void handle_sem_signal();
 
+    static void handle_time_sleep();
+
     static uint64* processorContext;
 
     static void* sysStack;
 
     static void* initialSysStack;
+
+
 };
 
 inline uint64 Riscv::r_scause()

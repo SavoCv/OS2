@@ -13,7 +13,7 @@ class TCB;
 template <class T>
 class List
 {
-private:
+protected:
     struct Elem
     {
         T *data;

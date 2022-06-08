@@ -15,7 +15,7 @@ void userMainWrapper(void*)
 [[noreturn]] void idle(void*)
 {
     while(true) {
-        printString("idle dispatch\n");
+        //printString("idle dispatch\n");
         thread_dispatch();
     }
 }
@@ -27,7 +27,7 @@ int main()
     thread_create(&uMain, userMainWrapper, nullptr);
     thread_create(&idle_t, idle, nullptr);
     while(!uMain->isFinished()) {
-        printString("main dispatch\n");
+        //printString("main dispatch\n");
         thread_dispatch();
     }
 

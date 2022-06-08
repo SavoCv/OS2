@@ -102,6 +102,16 @@ int sem_signal(sem_t id)
     return (int) ra0;
 }
 
+int time_sleep(time_t t)
+{
+    __asm__ volatile("mv a1, %[ss]" : : [ss] "r" (t));
+    __asm__ volatile("addi a0, zero, 0x31");
+    __asm__ volatile("ecall");
+    uint64 ra0 = 0;
+    __asm__ volatile("mv %[ra0], a0" : [ra0] "=r"(ra0));
+    return (int) ra0;
+}
+
 #ifdef __cplusplus
 }
 

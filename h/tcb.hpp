@@ -44,7 +44,7 @@ public:
     void operator delete(void * ptr);
 
 private:
-    TCB(Body body, uint64 timeSlice, void* stack_space, void* arg);
+    TCB(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p = false);
 
     struct Context
     {

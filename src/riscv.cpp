@@ -12,6 +12,7 @@
 void* Riscv::sysStack = nullptr;
 void* Riscv::initialSysStack = nullptr;
 uint64* Riscv::processorContext = nullptr;
+SleepList Riscv::sl;
 
 void Riscv::init()
 {
@@ -109,6 +110,14 @@ void Riscv::handle_sem_signal()
     processorContext[10] = handle->signal();
 }
 
+void Riscv::handle_time_sleep()
+{
+    time_t time = processorContext[11];
+    sl.add(new TCBAndTime(TCB::running, time));
+    TCB::dispatch_without_puting();
+    processorContext[10] = 0;
+}
+
 void Riscv::handleSupervisorTrap()
 {
     uint64 scause = r_scause();
@@ -159,6 +168,9 @@ void Riscv::handleSupervisorTrap()
                 handle_sem_signal();
                 break;
 
+            case 0x31:
+                handle_time_sleep();
+                break;
         }
         w_sstatus(TCB::running->context.sstatus);
         w_sepc(TCB::running->context.sepc);
@@ -167,6 +179,17 @@ void Riscv::handleSupervisorTrap()
     {
         // interrupt: yes; cause code: supervisor software interrupt (CLINT; machine timer interrupt)
         TCB::timeSliceCounter++;
+        TCBAndTime *tat;
+        tat = sl.peekFirst();
+        if(tat)
+            --tat->d;
+        while(tat && tat->d == 0)
+        {
+            tat = sl.removeFirst();
+            Scheduler::put(tat->t);
+            delete tat;
+            tat = sl.peekFirst();
+        }
         if (TCB::timeSliceCounter >= TCB::running->getTimeSlice())
         {
             TCB::running->context.sepc = r_sepc();
@@ -183,6 +206,9 @@ void Riscv::handleSupervisorTrap()
         console_handler();
     } else if (scause == 0x2)
     {
+        print("GRESKA: ilegalna instrukcija - ");
+        print((void*) r_sepc());
+        print("\n");
         handle_thread_exit();
     } else
     {

@@ -112,6 +112,25 @@ int time_sleep(time_t t)
     return (int) ra0;
 }
 
+void putc(char c)
+{
+    __asm__ volatile("mv a1, %[ss]" : : [ss] "r" ((uint64) c));
+    __asm__ volatile("addi a0, zero, 0x42");
+    __asm__ volatile("ecall");
+}
+
+extern sem_t input_ready;
+
+char getc()
+{
+    sem_wait(input_ready);
+    __asm__ volatile("addi a0, zero, 0x41");
+    __asm__ volatile("ecall");
+    uint64 ra0 = 0;
+    __asm__ volatile("mv %[ra0], a0" : [ra0] "=r"(ra0));
+    return (char) ra0;
+}
+
 #ifdef __cplusplus
 }
 

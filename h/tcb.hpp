@@ -37,6 +37,8 @@ public:
 
     static void dispatch_without_puting();
 
+    static void k_dispatch_without_puting();
+
     static TCB *running;
 
     void*  operator new(size_t_ sz);

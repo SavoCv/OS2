@@ -14,9 +14,11 @@ namespace TA2{
 
 extern "C" void test_allocator_c_api();
 
-enum Testing{Allocator, Allocator2, Allocator_c_api, Thread, ThreadAndSleep};
+void test_input_output();
 
-const Testing t = ThreadAndSleep;
+enum Testing{Allocator, Allocator2, Allocator_c_api, Thread, ThreadAndSleep, IO};
+
+const Testing t = IO;
 
 void userMain() {
     switch (t) {
@@ -25,6 +27,7 @@ void userMain() {
         case Allocator: test_allocator(); break;
         case Allocator_c_api: test_allocator_c_api(); break;
         case ThreadAndSleep: test_thread_and_sleep(); break;
+        case IO: test_input_output(); break;
         default: break;
     }
 }

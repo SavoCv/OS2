@@ -4,6 +4,7 @@
 #include "../h/riscv.hpp"
 #include "../h/tcb.hpp"
 #include "../h/syscall_c.h"
+#include "../h/KConsole.h"
 
 void userMain();
 
@@ -22,14 +23,14 @@ void userMainWrapper(void*)
 
 int main()
 {
-    Riscv::init();
     thread_t uMain, idle_t;
+    Riscv::init(idle, idle_t);
     thread_create(&uMain, userMainWrapper, nullptr);
-    thread_create(&idle_t, idle, nullptr);
     while(!uMain->isFinished()) {
         //printString("main dispatch\n");
         thread_dispatch();
     }
+
 
     printString("Kernel OS finished\n");
     idle_t->setFinished(true);

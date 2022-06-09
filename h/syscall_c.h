@@ -39,6 +39,12 @@ int sem_signal(sem_t id);
 
 int time_sleep(time_t t);
 
+const int EOF = -1;
+
+void putc(char c);
+
+char getc();
+
 #ifdef __cplusplus
 }
 

@@ -6,7 +6,7 @@
 #define OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_PRINT_HPP
 
 #include "../lib/hw.h"
-#include "../lib/console.h"
+#include "../h/syscall_c.h"
 
 extern void printString(char const *string);
 
@@ -24,7 +24,7 @@ template <class T>
 void println(T a)
 {
     print(a);
-    __putc('\n');
+    putc('\n');
 }
 
 template <class T>

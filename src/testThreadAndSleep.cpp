@@ -65,10 +65,12 @@ int test_thread_and_sleep()
         cr[3] = '0' + (i / 10) % 10;
         cr[2] = '0' + (i / 100) % 10;
 
+        sem_wait(fo);
         if(thread_create(&threads[i], workerB, &n[i]) < 0)
             printString(gr);
         else
             printString(cr);
+        sem_signal(fo);
     }
 
     printString("Test thread nit\n");

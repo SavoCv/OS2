@@ -38,6 +38,23 @@ int KSemaphore::wait()
     }
 }
 
+int KSemaphore::kwait()
+{
+    --val;
+    if(val >= 0)
+        return 0;
+    else
+    {
+        blocked.addLast(TCB::running);
+        TCB::k_dispatch_without_puting();
+        if(deleted) {
+            --deleted;
+            return -4;
+        }
+        return 0;
+    }
+}
+
 int KSemaphore::signal()
 {
     ++val;

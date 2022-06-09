@@ -4,7 +4,6 @@
 
 #include "../h/TESTprint.hpp"
 #include "../h/riscv.hpp"
-#include "../lib/console.h"
 #include "../h/syscall_c.h"
 
 sem_t getConsoleMutex()
@@ -21,7 +20,7 @@ void printString(char const *string)
     sem_wait(mutex);
     while (*string != '\0')
     {
-        __putc(*string);
+        putc(*string);
         string++;
     }
     sem_signal(mutex);
@@ -54,14 +53,14 @@ void printInteger(uint64 integer)
     if (neg)
         buf[i++] = '-';
 
-    while (--i >= 0) { __putc(buf[i]); }
+    while (--i >= 0) { putc(buf[i]); }
     sem_signal(mutex);
 }
 
 void print(const char* str)
 {
     for(int i = 0; str[i] != '\0'; ++i)
-        __putc(str[i]);
+        putc(str[i]);
 }
 
 void print (uint64 x, bool hex) {

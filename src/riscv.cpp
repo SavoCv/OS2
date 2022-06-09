@@ -4,23 +4,26 @@
 
 #include "../h/riscv.hpp"
 #include "../h/tcb.hpp"
-#include "../lib/console.h"
 #include "../h/TESTprint.hpp"
 #include "../h/MemoryAllocator.h"
 #include "../h/KSemaphore.hpp"
+#include "../h/KConsole.h"
+#include "../h/syscall_c.h"
 
 void* Riscv::sysStack = nullptr;
 void* Riscv::initialSysStack = nullptr;
 uint64* Riscv::processorContext = nullptr;
 SleepList Riscv::sl;
 
-void Riscv::init()
+void Riscv::init(void (*idle)(void* ), thread_t& idle_t)
 {
     TCB::init();
     initialSysStack = sysStack = (void*) kmem_alloc(DEFAULT_STACK_SIZE);
     sysStack = (char*) sysStack + DEFAULT_STACK_SIZE;
     processorContext = TCB::running->context.processorContext;
     w_stvec((uint64) &supervisorTrap);
+    thread_create(&idle_t, idle, nullptr);
+    KConsole::init();
     Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 }
 
@@ -118,6 +121,16 @@ void Riscv::handle_time_sleep()
     processorContext[10] = 0;
 }
 
+void Riscv::handle_getc()
+{
+    processorContext[10] = KConsole::getc();
+}
+
+void Riscv::handle_putc()
+{
+    KConsole::putc((char)processorContext[11]);
+}
+
 void Riscv::handleSupervisorTrap()
 {
     uint64 scause = r_scause();
@@ -171,6 +184,14 @@ void Riscv::handleSupervisorTrap()
             case 0x31:
                 handle_time_sleep();
                 break;
+
+            case 0x41:
+                handle_getc();
+                break;
+
+            case 0x42:
+                handle_putc();
+                break;
         }
         w_sstatus(TCB::running->context.sstatus);
         w_sepc(TCB::running->context.sepc);
@@ -203,7 +224,7 @@ void Riscv::handleSupervisorTrap()
     } else if (scause == 0x8000000000000009UL)
     {
         // interrupt: yes; cause code: supervisor external interrupt (PLIC; could be keyboard)
-        console_handler();
+        KConsole::console_handler();
     } else if (scause == 0x2)
     {
         print("GRESKA: ilegalna instrukcija - ");

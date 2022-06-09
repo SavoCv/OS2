@@ -2,14 +2,13 @@
 // Created by os on 5/20/22.
 //
 #include "../h/syscall_c.h"
-#include "../lib/console.h"
 
 typedef _Bool  bool;
 
 void printstr(const char* str)
 {
     for(int i = 0; str[i] != '\0'; ++i)
-        __putc(str[i]);
+        putc(str[i]);
 }
 
 void print (uint64 x, bool hex) {
@@ -38,7 +37,7 @@ void test_allocator_c_api()
 {
     int * a = (int*) mem_alloc(10 * sizeof(int));
     print((uint64)a, 1);
-    __putc('\n');
+    putc('\n');
     print(mem_free(a), 0);
-    __putc('\n');
+    putc('\n');
 }

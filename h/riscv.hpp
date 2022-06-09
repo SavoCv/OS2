@@ -19,7 +19,7 @@ class Riscv
 public:
     friend  class TCB;
 
-    static void init();
+    static void init(void (*idle)(void* ), thread_t& idle_t);
 
     // pop sstatus.spp and sstatus.spie bits (has to be a non inline function)
     static void popSppSpie();
@@ -89,6 +89,8 @@ public:
     // supervisor trap
     static void supervisorTrap();
 
+    static void returnFromInerrupt();
+
     static SleepList sl;
 
 private:
@@ -115,6 +117,10 @@ private:
     static void handle_sem_signal();
 
     static void handle_time_sleep();
+
+    static void handle_getc();
+
+    static void handle_putc();
 
     static uint64* processorContext;
 

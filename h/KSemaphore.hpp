@@ -14,6 +14,7 @@ public:
     KSemaphore(unsigned init);
     ~KSemaphore();
     int wait();
+    int kwait();
     int signal();
     void*  operator new(size_t_ sz);
     void operator delete(void * ptr);

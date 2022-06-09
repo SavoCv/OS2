@@ -72,6 +72,18 @@ void TCB::dispatch_without_puting()
     TCB::contextSwitch(&old->context, &running->context);
 }
 
+void TCB::k_dispatch_without_puting()
+{
+    TCB *old = running;
+    __asm__ volatile("mv %[x], ra" : [x] "=r"(old->context.sepc));
+    running = Scheduler::get();
+    TCB::contextSwitch(&old->context, &running->context);
+    Riscv::w_sstatus(TCB::running->context.sstatus);
+    Riscv::w_sepc(TCB::running->context.sepc);
+    Riscv::processorContext = TCB::running->context.processorContext;
+    Riscv::returnFromInerrupt();
+}
+
 void TCB::threadWrapper()
 {
     //TODO some things

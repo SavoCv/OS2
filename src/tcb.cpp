@@ -6,7 +6,6 @@
 #include "../h/tcb.hpp"
 #include "../h/riscv.hpp"
 #include "../h/MemoryAllocator.h"
-#include "../h/TESTprint.hpp"
 
 TCB *TCB::running = nullptr;
 

@@ -3,7 +3,6 @@
 //
 
 #include "../h/scheduler.hpp"
-#include "../h/TESTprint.hpp"
 
 List<TCB> Scheduler::readyThreadQueue;
 

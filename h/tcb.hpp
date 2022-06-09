@@ -8,7 +8,6 @@
 #include "../lib/hw.h"
 #include "scheduler.hpp"
 #include "MemoryAllocator.h"
-#include "TESTprint.hpp"
 #include "riscv.hpp"
 
 using size_t_ = decltype(sizeof(0));

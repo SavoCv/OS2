@@ -4,7 +4,6 @@
 
 #include "../h/riscv.hpp"
 #include "../h/tcb.hpp"
-#include "../h/TESTprint.hpp"
 #include "../h/MemoryAllocator.h"
 #include "../h/KSemaphore.hpp"
 #include "../h/KConsole.h"
@@ -227,19 +226,19 @@ void Riscv::handleSupervisorTrap()
         KConsole::console_handler();
     } else if (scause == 0x2)
     {
-        print("GRESKA: ilegalna instrukcija - ");
-        print((void*) r_sepc());
-        print("\n");
+        //print("GRESKA: ilegalna instrukcija - ");
+        //print((void*) r_sepc());
+        //print("\n");
         handle_thread_exit();
     } else
     {
         // unexpected trap cause
         uint64 sepc = r_sepc();
-        printString("neocekivano: ");
-        printInteger(scause);
-        printString(" ");
-        print((void*) r_sepc());
-        printString("\n");
+        //printString("neocekivano: ");
+        //printInteger(scause);
+        //printString(" ");
+        //print((void*) r_sepc());
+        //printString("\n");
         w_sepc(sepc);
     }
 }

@@ -32,7 +32,7 @@ int main()
     }
 
 
-    printString("Kernel OS finished\n");
+    //printString("Kernel OS finished\n");
     idle_t->setFinished(true);
     thread_dispatch();
 

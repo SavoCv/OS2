@@ -4,7 +4,6 @@
 
 #include "../h/MemoryAllocator.h"
 #include "../lib/hw.h"
-#include "../h/TESTprint.hpp"
 
 void* MemoryAllocator::operator new(size_t sz) {
     return (void*) HEAP_START_ADDR;

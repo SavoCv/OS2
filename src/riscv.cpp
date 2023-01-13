@@ -206,7 +206,8 @@ void Riscv::handleSupervisorTrap()
         while(tat && tat->d == 0)
         {
             tat = sl.removeFirst();
-            Scheduler::put(tat->t);
+            if(!tat->t->isFinished())
+                Scheduler::put(tat->t);
             delete tat;
             tat = sl.peekFirst();
         }

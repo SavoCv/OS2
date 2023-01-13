@@ -24,6 +24,20 @@ public:
     static char getc();
 
     static void console_handler();
+
+    static void print(const char* s);
+
+    static void print(const int n);
+
+    static void print(char* s){ print((const char *) s);}
+
+
+    /*static void print(double n);
+
+    static void print(double n, int dec);*/
+
+    template<class T>
+    static void println(T s);
 };
 
 

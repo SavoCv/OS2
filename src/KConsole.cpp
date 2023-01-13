@@ -5,6 +5,7 @@
 #include "../h/KConsole.h"
 #include "../lib/hw.h"
 #include "../h/syscall_c.h"
+#include "../h/SlabAllocator.h"
 
 List<char> KConsole::output_buffer;
 List<char> KConsole::input_buffer;
@@ -40,7 +41,7 @@ char KConsole::getc()
     kmem_free(tmp);
     if(c == 0)
         c = EOF;
-    putc(c); //Obavezno ako se pokrece iz terminala
+    //putc(c); //Obavezno ako se pokrece iz terminala
     return c;
 }
 
@@ -89,3 +90,44 @@ void KConsole::console_handler()
 
     plic_complete(CONSOLE_IRQ);
 }
+
+void KConsole::print(const char *s) {
+    for(int i = 0; s[i] != 0; ++i)
+        putc(s[i]);
+}
+
+void KConsole::print(const int n) {
+    char *buff = (char*) SlabAllocator::getAllocator()->kmalloc(20);
+    char *p = buff + 19;
+    int nc = n;
+    *p = 0;
+    do {
+        --p;
+        *p = '0' + nc % 10;
+        nc /= 10;
+    } while(nc);
+    print(p);
+}
+
+template<class T>
+void KConsole::println(T s) {
+    print(s);
+    print("\n");
+}
+
+/*void KConsole::print(double n, int dec) {
+    print((int)n);
+    int tmp = 1;
+    if(dec > 8)
+        dec = 8;
+    for(int i = 0; i < dec; ++i)
+        tmp *= 10;
+    n -= (int)n;
+    n *= tmp;
+    n += 0.5;
+    print((int)n);
+}
+
+void KConsole::print(double n) {
+    print(n, 2);
+}*/

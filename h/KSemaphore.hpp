@@ -6,6 +6,7 @@
 #define PROJEKAT_KSEMAPHORE_H
 #include "list.hpp"
 #include "tcb.hpp"
+#include "utils.h"
 
 using size_t_ = decltype(sizeof(0));
 

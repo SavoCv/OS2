@@ -5,6 +5,8 @@
 #ifndef OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_LIST_HPP
 #define OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_LIST_HPP
 #include "MemoryAllocator.h"
+#include "SlabAllocator.h"
+#include "utils.h"
 
 using size_t_ = decltype(sizeof(0));
 
@@ -39,7 +41,7 @@ public:
 
     List<T> &operator=(const List &) = delete;
 
-    void addFirst(T *data)
+    __attribute__((noinline)) void addFirst(T *data)
     {
         Elem *elem = (Elem*) kmem_alloc(sizeof(Elem));
         elem->data = data;
@@ -49,7 +51,7 @@ public:
         if (!tail) { tail = head; }
     }
 
-    void addLast(T *data)
+    __attribute__((noinline)) void addLast(T *data)
     {
         Elem *elem = (Elem*)kmem_alloc(sizeof(Elem));
         elem->data = data;
@@ -64,7 +66,7 @@ public:
         }
     }
 
-    T *removeFirst()
+    __attribute__((noinline)) T *removeFirst()
     {
         if (!head) { return 0; }
 
@@ -117,6 +119,14 @@ public:
                 return false;
         }
         return n == 0;
+    }
+
+    void*  operator new(size_t_ sz){
+        return kmem_alloc(sz);
+    }
+
+    void operator delete(void * ptr){
+        kmem_free(ptr);
     }
 };
 

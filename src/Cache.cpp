@@ -8,12 +8,14 @@
 
 #define MIN_OBJECTS_IN_CACHE 8
 
+#define println(X) (KConsole::print(X), KConsole::print("\n"))
+
 void Cache::init(const char* na, int o_sz, void (*ct)(void*), void (*dt)(void*))
 {
     next = nullptr;
     free=full=partly=nullptr;
     err = 0;
-    for(int i = 0; na[i - 1] != 0; ++i)
+    for(int i = 0; i == 0 || na[i - 1] != 0; ++i)
         if(i < MAX_LEN_NAME)
             name[i] = na[i];
         else {
@@ -26,8 +28,8 @@ void Cache::init(const char* na, int o_sz, void (*ct)(void*), void (*dt)(void*))
     num_of_slabs = 0;
     int l_o_sz = BuddyAllocator::getLogSize(8 * o_sz/BLOCK_SIZE);
     size_n = l_o_sz;
-    ctor = nullptr;
-    dtor = nullptr;
+    ctor = ct;
+    dtor = dt;
     last_shrink_num_slabs = 10000;
     num_of_objects = 0;
 }
@@ -36,13 +38,27 @@ void Cache::add_slab(SlabK* sk)
 {
     ++num_of_slabs;
     size += sk->size;
+    SlabK **tmp;
     if(sk->get_free_cnt() == 0)
-        full = full->next = sk;
+        tmp = &full;
+        //full = full->next = sk;
     else
         if(sk->get_cnt() == 0)
-            free = free->next = sk;
+            tmp = &free;
+            //free = free->next = sk;
         else
-            partly = partly->next = sk;
+            tmp = &partly;
+            //partly = partly->next = sk;
+    if(*tmp == nullptr)
+    {
+        *tmp = sk;
+        sk->next = nullptr;
+    }
+    else
+    {
+        sk->next = *tmp;
+        *tmp = sk;
+    }
 }
 
 void* Cache::alloc()
@@ -62,14 +78,18 @@ void* Cache::alloc()
     else {
         if(!free) {
             free = (SlabK *) BuddyAllocator::getAllocator()->allocate(size_n);
-            if(free)
-                free->init(free, 1 << size_n, object_size);
+            if(free) {
+                free->init(free, (1 << size_n) * BLOCK_SIZE, object_size);
+                num_of_slabs++;
+                size += (1 << size_n) * BLOCK_SIZE;
+            }
+
         }
         if (free) {
             ret = free->alloc();
 
             SlabK *tmp = free->next;
-            free->next = full;
+            free->next = partly;
             partly = free;
             free = tmp;
         }
@@ -85,8 +105,9 @@ void* Cache::alloc()
     return ret;
 }
 
-void Cache::shrink()
+int Cache::shrink()
 {
+    int cnt = 0;
     if(num_of_slabs <= last_shrink_num_slabs) // moze biti samo jednako ili vece
     {
         for(SlabK* sk = free; sk != nullptr;) {
@@ -95,12 +116,14 @@ void Cache::shrink()
             BuddyAllocator::getAllocator()->free(sk, size_n);
             sk = tmp;
             num_of_slabs--;
+            cnt++;
         }
         free = nullptr;
     }
+    return cnt;
 }
 
-bool Cache::try_free(void * obj)
+bool Cache::try_free(const void *obj)
 {
     SlabK *t, *p = nullptr;
     for(t = full; t != nullptr; p = t, t = t->next)
@@ -126,11 +149,11 @@ bool Cache::try_free(void * obj)
             break;
     if(t != nullptr)
     {
-        if(p)
-            p->next = t->next;
-        else
-            partly = t->next;
-        if(t->get_cnt() == 0) {
+        if(t->get_cnt() == 0){
+            if(p)
+                p->next = t->next;
+            else
+                partly = t->next;
             t->next = free;
             free = t;
         }
@@ -142,28 +165,31 @@ bool Cache::try_free(void * obj)
 
 void Cache::print_info()
 {
-    KConsole::println("---Cache---");
+    println("---Cache---");
     KConsole::print("Name: ");
-    KConsole::println(name);
+    println(name);
     KConsole::print("Object size [Byte]: ");
-    KConsole::println(object_size);
+    println(object_size);
     KConsole::print("Size [BLOCKS]:");
-    KConsole::println(size/BLOCK_SIZE);
+    println(size/BLOCK_SIZE);
     KConsole::print("Num of slabs: ");
-    KConsole::println(num_of_slabs);
-    KConsole::print("Num of objects in slab: ");
+    println(num_of_slabs);
+    KConsole::print("Num of objects: ");
+    KConsole::print(num_of_objects);
+    KConsole::print("\n");
+    KConsole::print("Capacity of slab: ");
     SlabK *p = full;
     if(!p)
         p = partly;
     if(!p)
         p = free;
     if(!p)
-        KConsole::println("not calculated yet");
+        println("not calculated yet");
     else
-        KConsole::println(p->kap);
+        println(p->kap);
     KConsole::print("Percentage of used: ");
     if(!p)
-        KConsole::println("not calculated yet");
+        println("not calculated yet");
     else
     {
         KConsole::print(100 * num_of_objects / p->kap / num_of_slabs);
@@ -171,9 +197,9 @@ void Cache::print_info()
         int tmp = (100 * num_of_objects) % (p->kap * num_of_slabs) * 100 / (p->kap * num_of_slabs);
         if(tmp < 10)
             KConsole::putc(0);
-        KConsole::println(tmp);
+        println(tmp);
     }
-    KConsole::println("-----------");
+    println("-----------");
     KConsole::putc('\n');
 
     /*KConsole::print("Num of objects in slabs: ");
@@ -186,8 +212,8 @@ int Cache::print_error()
 {
     switch(err)
     {
-        case 1: KConsole::println("Name is too long"); break;
-        case 2: KConsole::println("There are no enough memory"); break;
+        case 1: println("Name is too long"); break;
+        case 2: println("There are no enough memory"); break;
     }
     return -err;
 }

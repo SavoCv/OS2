@@ -35,6 +35,12 @@ void Riscv::handle_mem_alloc()
 {
     //uint64 ra1 = 0;
     //__asm__ volatile("mv %[ra1], a1" : [ra1] "=r"(ra1));
+    /*static int cnt = 1;
+    ++cnt;
+    if(cnt % 50 == 0)
+        KConsole::print("handle mem alloc\n");*/
+    /*uint64 ra0_v1 = (uint64)kmem_alloc(TCB::running->context.processorContext[11]);
+    processorContext[10] = ra0_v1;*/
     MemoryAllocator *ma = MemoryAllocator::getAllocator();
     ma->allocate(TCB::running->context.processorContext[11]);
     uint64 ra0 = 0;
@@ -139,7 +145,7 @@ void Riscv::handleSupervisorTrap()
         w_sepc(r_sepc() + 4);
         TCB::running->context.sepc = r_sepc();
         TCB::running->context.sstatus = r_sstatus();
-        uint64 ra0 = 0;
+        volatile uint64 ra0 = 0;
         /*TCB::timeSliceCounter = 0;
         TCB::dispatch();*/
         __asm__ volatile("mv %[ra0], a0" : [ra0] "=r"(ra0));
@@ -227,19 +233,26 @@ void Riscv::handleSupervisorTrap()
         KConsole::console_handler();
     } else if (scause == 0x2)
     {
-        //print("GRESKA: ilegalna instrukcija - ");
-        //print((void*) r_sepc());
-        //print("\n");
+        KConsole::print("GRESKA: ilegalna instrukcija:\nsepc: ");
+        KConsole::print_hex((long)r_sepc());
+        KConsole::print("\nstval: ");
+        KConsole::print_hex((long)r_stval());
+        KConsole::print("\n");
+        KConsole::console_handler();
         handle_thread_exit();
     } else
     {
         // unexpected trap cause
         uint64 sepc = r_sepc();
-        //printString("neocekivano: ");
-        //printInteger(scause);
-        //printString(" ");
-        //print((void*) r_sepc());
-        //printString("\n");
+        KConsole::print("ERROR: Unexpected trap cause: scause=");
+        KConsole::print(scause);
+        KConsole::print(", sepc=");
+        KConsole::print_hex(sepc);
+        KConsole::print("\nstval: ");
+        uint64 stval = (long)r_stval();
+        KConsole::print_hex(stval);
+        KConsole::print("\n");
+        KConsole::console_handler();
         w_sepc(sepc);
     }
 }

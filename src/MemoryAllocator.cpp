@@ -4,6 +4,7 @@
 
 #include "../h/MemoryAllocator.h"
 #include "../lib/hw.h"
+#include "../h/KConsole.h"
 
 void* MemoryAllocator::operator new(size_t sz) {
     return (void*) HEAP_START_ADDR;
@@ -18,6 +19,7 @@ MemoryAllocator *MemoryAllocator::getAllocator() {
 MemoryAllocator::MemoryAllocator() {
     first_free = (Fragment*) ((char*)HEAP_START_ADDR + MEM_BLOCK_SIZE);
     first_free->next = nullptr;
+    //first_free->prev = nullptr;
     first_free->sz = (char*)HEAP_END_ADDR - (char*)HEAP_START_ADDR;
     first_reserved = nullptr;
 }
@@ -29,6 +31,9 @@ void MemoryAllocator::link(Fragment *&list, Fragment* curr, Fragment* prev, Frag
     else
         list = x;
     x->next = curr;
+    /*x->prev = prev;
+    if(curr)
+        curr->prev = x;*/
 }
 
 void MemoryAllocator::unlink(Fragment *& list, Fragment* curr, Fragment* prev){
@@ -39,9 +44,25 @@ void MemoryAllocator::unlink(Fragment *& list, Fragment* curr, Fragment* prev){
 }
 
 void *MemoryAllocator::allocate(size_t vel) {
+    static int cnt = 1;
+    ++cnt;
+    if(cnt % 50 == 0) {
+        int broj_frag = 0;
+        for(Fragment * curr = first_free; curr; curr = curr->next)
+            ++broj_frag;
+        KConsole::print(" ");
+        KConsole::print(broj_frag);
+        KConsole::print(" ");
+        broj_frag = 0;
+        for(Fragment * curr = first_reserved; curr; curr = curr->next)
+            ++broj_frag;
+        KConsole::print(broj_frag);
+        KConsole::print("\n");
+    }
+
     vel *= MEM_BLOCK_SIZE;
 
-    //best fit - trazenje najmanjeg fragmenta veceg ili jednakoh zadatoj velicini + sizeof(Fragment)
+    //best fit - trazenje najmanjeg fragmenta veceg ili jednakoh zadatoj velicini + sizeof(Fragment
     Fragment* curr = first_free, *prev = nullptr, *x;
     lower_bound(first_free, curr, prev, vel);
     if(!curr || curr->sz < vel)
@@ -129,16 +150,4 @@ void MemoryAllocator::lower_bound(Fragment *list, Fragment *&curr, Fragment *&pr
     for(; curr; prev = curr, curr = curr->next)
         if(curr->sz >= sz)
             break;
-}
-
-void *kmem_alloc(size_t sz)
-{
-    MemoryAllocator *ma = MemoryAllocator::getAllocator();
-    return ma->allocate((sz - 1 + ma->get_size_of_additional_space()) / MEM_BLOCK_SIZE + 1);
-}
-
-int kmem_free(void* ptr)
-{
-    MemoryAllocator *ma = MemoryAllocator::getAllocator();
-    return ma->free(ptr);
 }

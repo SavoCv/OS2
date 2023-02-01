@@ -7,7 +7,6 @@ KSemaphore::KSemaphore(unsigned init) : val(init) {}
 
 KSemaphore::~KSemaphore()
 {
-    //TODO
     TCB* t;
     deleted = 0;
     while( (t = blocked.removeFirst()) )

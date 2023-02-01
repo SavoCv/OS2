@@ -56,7 +56,7 @@ public:
     static int getLogSize(int size);
 
 private:
-    static const int X_SIZE = 32; // 2 ^ X_SIZE maksimalan broj blokova koji moze rukovoditi sa alokatorom
+    static const int X_SIZE = 30; // 2 ^ X_SIZE maksimalan broj blokova koji moze rukovoditi sa alokatorom
     void *x[X_SIZE];
     char *starting;
 };

@@ -6,8 +6,10 @@
 #define PROJEKAT_SLAB_H
 
 //#include <stdlib.h>
+#include "utils.h"
 
-typedef struct kmem_cache_s kmem_cache_t;
+//typedef kmem_cache_s kmem_cache_t;
+
 #define BLOCK_SIZE (4096)
 
 void kmem_init(void *space, int block_num);

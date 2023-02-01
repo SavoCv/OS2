@@ -21,20 +21,25 @@ int BuddyAllocator::init(void *space, int block_num)
     starting = (char*) space;
 
     int i, j;
-    for(i = 0, j = 1; j <= block_num; ++i, j <<= 1);
-    // j = 1 << i;
-    --i;
-    j >>= 1;
-    if(i >= X_SIZE)
-        return -2;
+//    for(i = 0, j = 1; j <= block_num; ++i, j <<= 1);
+//    // j = 1 << i;
+//    --i;
+//    j >>= 1;
+//    if(i >= X_SIZE)
+//        return -2;
 
-    for(; i>= 0; --i, j >>= 1)
+    for(i = X_SIZE - 1, j = 1 << i; i>= 0; --i, j >>= 1)
         if(block_num >= j) {
             x[i] = space;
             *(void**)x[i] = nullptr;
             space = (char *) space + j * BLOCK_SIZE;
             block_num -= j;
         }
+        else
+            x[i] = nullptr;
+
+    if(block_num > 0)
+        return -2;
 
     return 0;
 }
@@ -89,6 +94,7 @@ int BuddyAllocator::free(void *space, int vel)
                     found_buddy = true;
                     break;
                 }
+                i = next;
             }
         if(!found_buddy)
         {

@@ -6,10 +6,6 @@
 #define PROJECT_BASE_MEMORYALLOCATOR_H
 #include "./../lib/hw.h"
 
-void *kmem_alloc(size_t);
-
-int kmem_free(void* );
-
 class MemoryAllocator {
 public:
     MemoryAllocator(const MemoryAllocator&) = delete;

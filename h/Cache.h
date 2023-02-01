@@ -29,9 +29,9 @@ public:
 
     void* alloc();
 
-    void shrink();
+    int shrink();
 
-    bool try_free(void * obj);
+    bool try_free(const void *obj);
 
     void print_info();
 

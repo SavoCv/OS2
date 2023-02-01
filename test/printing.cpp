@@ -9,6 +9,7 @@ uint64 lockPrint = 0;
 #define LOCK() while(copy_and_swap(lockPrint, 0, 1))
 #define UNLOCK() while(copy_and_swap(lockPrint, 1, 0))
 
+
 void printString(char const *string)
 {
     LOCK();

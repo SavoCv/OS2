@@ -27,7 +27,7 @@ public:
 
     int get_kap(){return kap;}
 
-    bool try_free(void *obj, void (*dtor)(void*));
+    bool try_free(const void *obj, void (*dtor)(void*));
 };
 
 

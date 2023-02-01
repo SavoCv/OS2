@@ -31,13 +31,13 @@ void* SlabK::alloc()
     return tmp;
 }
 
-bool SlabK::try_free(void *obj, void (*dtor)(void*)) {
+bool SlabK::try_free(const void *obj, void (*dtor)(void*)) {
     if(obj < (void*) this || obj >= ((char*) this + size))
         return false;
    if(dtor)
-        dtor(obj);
+        dtor((void*)obj);
     *(void**)obj = objects;
-    objects = obj;
+    objects = (void*) obj;
     --cnt;
     return true;
 }

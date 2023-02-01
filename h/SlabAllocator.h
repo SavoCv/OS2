@@ -7,6 +7,10 @@
 #include "Cache.h"
 #include "BuddyAllocator.h"
 
+void *kmem_alloc(size_t);
+
+int kmem_free(void* );
+
 class SlabAllocator {
 public:
     const static int block_size = 4096;
@@ -21,13 +25,13 @@ public:
 
     Cache* create_cache(const char* name, int size, void (*ctor)(void*), void (*dtor)(void *));
 
-    void shrink_cache(Cache* cache);
+    int shrink_cache(Cache* cache);
 
     void* alloc(Cache* cache);
 
     void* kmalloc(size_t size);
 
-    void kfree(void* ptr);
+    int kfree(const void* ptr);
 
     void free(Cache* cache, void* ptr);
 
@@ -50,7 +54,7 @@ public:
     static void strcpy(char* dst, const char* src);
 private:
     Cache* cache_for_caches, *last_cache;
-    const int size_n_caches = 0;
+    static const int size_n_caches;
 };
 
 

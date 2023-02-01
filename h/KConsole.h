@@ -6,16 +6,20 @@
 #define PROJEKAT_KCONSOLE_H
 #include "list.hpp"
 #include "KSemaphore.hpp"
+#include "utils.h"
 
 class KConsole {
-    static List <char> output_buffer;
-    static List <char> input_buffer;
+    static List <char>* output_buffer_p;
+    static List <char>* input_buffer_p;
+
+    //static List <char>& output_buffer;
+    //static List <char>& input_buffer;
     static KSemaphore* output_ready;
     static thread_t thr_t;
 
     static void aux();
 
-    static void console_thread(void*);
+    [[noreturn]] static void console_thread(void*);
 public:
     static void init();
 
@@ -25,12 +29,13 @@ public:
 
     static void console_handler();
 
-    static void print(const char* s);
+    static void print(const char * const  s);
 
     static void print(const int n);
 
     static void print(char* s){ print((const char *) s);}
 
+    static void print_hex(const long n);
 
     /*static void print(double n);
 

@@ -3,6 +3,10 @@
 //
 
 #include "../h/SlabAllocator.h"
+#include "../h/KConsole.h"
+#include "../h/utils.h"
+
+const int SlabAllocator::size_n_caches = 0;
 
 SlabAllocator *SlabAllocator::getAllocator() {
     static SlabAllocator *ma = nullptr;
@@ -49,12 +53,17 @@ Cache* SlabAllocator::create_cache(const char* name, int size, void (*ctor)(void
     if(curr != nullptr)
         return curr;
     Cache* cache = (Cache*) cache_for_caches->alloc();
-    cache->init(name, size, ctor, dtor);
+    last_cache->next = cache;
+    last_cache = cache;
+    if(size < 32)
+        size = 32;
+    if(cache)
+        cache->init(name, size, ctor, dtor);
     return cache;
 }
 
-void SlabAllocator::shrink_cache(Cache* cache){
-    cache->shrink();
+int SlabAllocator::shrink_cache(Cache* cache){
+    return cache->shrink();
 }
 
 void* SlabAllocator::alloc(Cache* cache){
@@ -78,30 +87,46 @@ int SlabAllocator::itos(int n, char* buff){
         buff[cnt++] = '0' + n % 10;
         n /= 10;
     }
+    for(int i = 0; i < cnt / 2; ++i)
+    {
+        char tmp = buff[i];
+        buff[i] = buff[cnt - 1 - i];
+        buff[cnt - 1 - i] = tmp;
+    }
     buff[cnt] = 0;
     return cnt;
 }
 
 void SlabAllocator::strcpy(char* dst, const char* src)
 {
-    for(int i = 0; src[i] != 0; ++i)
+    for(int i = 0; i == 0 || src[i - 1] != 0; ++i)
         dst[i] = src[i];
 }
 
 void* SlabAllocator::kmalloc(size_t size){
     int log_size = BuddyAllocator::getLogSize(size);
     size_t rs = 1 << log_size;
+    if(rs < 32)
+        rs = 32;
 
     char *name = (char*) MemoryAllocator::getAllocator()->allocate(20);
     strcpy(name, "size-");
     itos(rs, name + 5);
     Cache *cache = create_cache(name, rs, nullptr, nullptr);
-    if(cache == nullptr)
+    if(cache == nullptr) {
+        KConsole::print("ERROR: SlabAllocator failed to allocate new cache\n");
+        KConsole::console_handler();
         return nullptr;
-    return cache->alloc();
+    }
+    void *tmp = cache->alloc();
+    if(!tmp) {
+        KConsole::print("ERROR: SlabAllocator failed to allocate from cache\n");
+        KConsole::console_handler();
+    }
+    return tmp;
 }
 
-void SlabAllocator::kfree(void* ptr){
+int SlabAllocator::kfree(const void* ptr){
     for(Cache* cache = cache_for_caches; cache != nullptr; cache=cache->next)
     {
         if(cache->name[0] == 's' &&
@@ -110,9 +135,10 @@ void SlabAllocator::kfree(void* ptr){
             cache->name[3] == 'e' &&
             cache->name[4] == '-')
             if(cache->try_free(ptr))
-                return;
+                return 0;
     }
-    //error
+    //error but can't signal in cache, only in cache for caches but that's not great solution
+    return -1;
 }
 
 void SlabAllocator::delete_cache(Cache* cache){
@@ -120,11 +146,26 @@ void SlabAllocator::delete_cache(Cache* cache){
 }
 
 void SlabAllocator::print_cache_info(Cache* cache){
-//TODO
+    cache->print_info();
 }
 
 int SlabAllocator::print_error_cache(Cache* cache){
-//TODO
-    return 0;
+    return cache->print_error();
+}
+
+void* kmem_alloc(size_t sz)
+{
+#ifdef DEBUG
+    return MemoryAllocator::getAllocator()->allocate(sz);
+#endif
+    return SlabAllocator::getAllocator()->kmalloc(sz);
+}
+
+int kmem_free(void* ptr)
+{
+#ifdef DEBUG
+    return MemoryAllocator::getAllocator()->free(ptr);
+#endif
+    return SlabAllocator::getAllocator()->kfree(ptr);
 }
 

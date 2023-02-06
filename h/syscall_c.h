@@ -6,6 +6,7 @@
 #define PROJECT_BASE_SYSCALL_C_H
 
 #include "../lib/hw.h"
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,6 +45,8 @@ const int EOF = -1;
 void putc(char c);
 
 char getc();
+
+int printf(const char* pattern, ...);
 
 #ifdef __cplusplus
 }

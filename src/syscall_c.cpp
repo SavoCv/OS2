@@ -135,6 +135,164 @@ char getc()
     return (char) ra0;
 }
 
+int myfunc(int count, ...)
+{
+    va_list list;
+    int j = 0;
+
+    va_start(list, count);
+    for(j=0; j<count; j++)
+    {
+        printf("%d", va_arg(list, int));
+    }
+
+    va_end(list);
+
+    return count;
+}
+
+//Kod javnog testa OS1
+void printString(char const *string)
+{
+    while (*string != '\0')
+    {
+        putc(*string);
+        string++;
+    }
+}
+
+//Kod javnog testa OS1
+int stringToInt(const char *s) {
+    int n;
+
+    n = 0;
+    while ('0' <= *s && *s <= '9')
+        n = n * 10 + *s++ - '0';
+    return n;
+}
+
+char digits[] = "0123456789ABCDEF";
+
+//Kod javnog testa OS1
+void printInt(int xx, int base, int sgn)
+{
+    char buf[16];
+    int i, neg;
+    uint x;
+
+    neg = 0;
+    if(sgn && xx < 0){
+        neg = 1;
+        x = -xx;
+    } else {
+        x = xx;
+    }
+
+    i = 0;
+    do{
+        buf[i++] = digits[x % base];
+    }while((x /= base) != 0);
+    if(neg)
+        buf[i++] = '-';
+
+    while(--i >= 0)
+        putc(buf[i]);
+}
+
+/*
+int myfunc(int count, ...)
+{
+   va_list list;
+   int j = 0;
+
+   va_start(list, count);
+   for(j=0; j<count; j++)
+   {
+     printf("%d", va_arg(list, int));
+   }
+
+   va_end(list);
+
+   return count;
+}
+ */
+
+int printf(const char* pattern, ...)
+{
+    int cnt = 0;
+    for(const char *i = pattern; *i; ++i)
+        if(*i == '%') {
+            if (i[1] == 0)
+                break;
+            else if (i[1] == '%')
+                ++i;
+            else
+                ++cnt;
+        }
+
+    static sem_t sem = nullptr;
+    if(sem == nullptr)
+    {
+        sem_open(&sem, 1);
+        if(sem == nullptr)
+            return -1;
+    }
+    sem_wait(sem);
+    va_list list;
+    va_start(list, pattern);
+
+    for(const char *i = pattern; *i; ++i)
+    {
+        if(*i != '%')
+            putc(*i);
+        else
+        {
+            ++i;
+            switch (*i) {
+                case 0:
+                    --i;
+                    break;
+
+                case '%':
+                    putc('%');
+                    break;
+
+                case 'd': case 'i':
+                    printInt(va_arg(list, int), 10, 1);
+                    break;
+
+                case 'u':
+                    printInt(va_arg(list, int), 10, 0);
+                    break;
+
+                case 'x':
+                    printInt(va_arg(list, int), 16, 0);
+                    break;
+
+                case 'o':
+                    printInt(va_arg(list, int), 8, 0);
+                    break;
+
+                case 'p':
+                    printInt((int)(uint64) va_arg(list, void*), 16, 0);
+                    break;
+
+                case 'c':
+                    putc(va_arg(list, int));
+                    break;
+
+                case 's':
+                    printString(va_arg(list, char*));
+                    break;
+            }
+        }
+    }
+
+    va_end(list);
+    sem_signal(sem);
+    return cnt;
+}
+
 #ifdef __cplusplus
 }
 

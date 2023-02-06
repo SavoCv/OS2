@@ -74,7 +74,7 @@ void KSemaphore::operator delete(void * ptr)
 }*/
 
 bool KSemaphore::initPassed() {
-    return blocked == nullptr;
+    return blocked != nullptr;
 }
 
 int KSemaphore::init(unsigned int init_val) {

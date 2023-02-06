@@ -98,11 +98,15 @@ void Riscv::handle_sem_create()
     sem_t *handle = (sem_t *)processorContext[11];
     //KSemaphore *ks =  new KSemaphore((unsigned) processorContext[12]);
     KSemaphore *ks =  KSemaphore::produce((unsigned) processorContext[12]);
-    if(ks->initPassed())
+    if(ks->initPassed()) {
         *handle = ks;
-    else
+        processorContext[10] = 0;
+    }
+    else {
         *handle = nullptr;
-    processorContext[10] = 0;
+        processorContext[10] = -1;
+    }
+
 }
 
 void Riscv::handle_sem_close()

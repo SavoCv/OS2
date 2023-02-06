@@ -1,5 +1,4 @@
 #include "../h/slab.h"
-#include "printing.hpp"
 #include "../h/syscall_cpp.hpp"
 
 #define RUN_NUM (5)
@@ -41,11 +40,11 @@ int check(void *data, size_t size) {
 
 void construct(void *data) {
     static int i = 1;
-    printInt(i++);
-    printString(" Shared object constructed.\n");
+    /*printInt(i++);
+    printString(" Shared object constructed.\n");*/
     /*printInt((int) (uint64) data, 16);
     printString("\n");*/
-    //printf("%d Shared object constructed.\n", i++);
+    printf("%d Shared object constructed.\n", i++);
     memset(data, shared_size, MASK);
     /*if (!check(data, shared_size)) {
         printString("Value not correct3!\n");
@@ -75,8 +74,8 @@ void work(void* pdata) {
             printString("\n");*/
 			objs[size].cache = data.shared;
 			if (!check(objs[size].data, shared_size)) {
-                printString("Value not correct1!");
-                //printf("Value not correct!");
+                //printString("Value not correct1!");
+                printf("Value not correct!");
             }
 		}
 		else {
@@ -92,8 +91,8 @@ void work(void* pdata) {
 
 	for (int i = 0; i < size; i++) {
 		if (!check(objs[i].data, (cache == objs[i].cache) ? object_size : shared_size)) {
-            //printf("Value not correct!");
-            printString("Value not correct2!");
+            printf("Value not correct!");
+            //printString("Value not correct2!");
         }
 		kmem_cache_free(objs[i].cache, objs[i].data);
 	}
@@ -113,7 +112,7 @@ void runs(void(*work)(void*), struct data_s* data, int num) {
     }
 }
 
-/*
+
 void userMain() {
 
 	kmem_cache_t *shared = kmem_cache_create("shared object", shared_size, construct, NULL);

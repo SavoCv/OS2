@@ -50,15 +50,6 @@ class Console {
 public:
     static char getc ();
     static void putc (char);
-
-    static void print(const char* s);
-    static void print(uint64 br);
-    template <class T>
-    static void println(T x)
-    {
-        print(x);
-        print("\n");
-    }
 };
 
 #endif //PROJEKAT_SYSCALL_CPP_H

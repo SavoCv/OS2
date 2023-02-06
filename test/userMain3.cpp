@@ -2,7 +2,6 @@
 // Created by os on 1/18/23.
 //
 #include "../h/slab.h"
-#include "printing.hpp"
 
 struct myData{
     int x[5];
@@ -39,5 +38,12 @@ void userMain()
 
         printString("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n\n\n\n");
     }
+}
+//*/
+
+/*
+void userMain()
+{
+    printf("Nula: %d\nString:%s\n", 0, "neki string");
 }
 //*/

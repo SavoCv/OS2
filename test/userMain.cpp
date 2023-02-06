@@ -1,6 +1,5 @@
 #include "../h/syscall_c.h"
 #include "../h/syscall_cpp.hpp"
-#include "printing.hpp"
 
 struct thread_data {
     int id;
@@ -10,10 +9,10 @@ class ForkThread : public Thread {
 public:
     ForkThread(long _id) noexcept : Thread(), id(_id), finished(false) {}
     virtual void run() {
-        //printf("Started thread id:%d\n", id);
-        printString("Started thread id:");
+        printf("Started thread id:%d\n", id);
+        /*printString("Started thread id:");
         printInt(id);
-        printString("\n");
+        printString("\n");*/
 
         ForkThread* thread = new ForkThread(id + 1);
         ForkThread** threads = (ForkThread** ) mem_alloc(sizeof(ForkThread*) * id);
@@ -29,8 +28,8 @@ public:
             if (thread != nullptr) {
                 if (thread->start() == 0) {
 
-                    for (int i = 0; i < 5000; i++) {
-                        for (int j = 0; j < 5000; j++) {
+                    for (int i = 0; i < 500; i++) {
+                        for (int j = 0; j < 500; j++) {
 
                         }
                         thread_dispatch();
@@ -50,10 +49,10 @@ public:
             mem_free(threads);
         }
 
-        //printf("Finished thread id:%d\n", id);
-        printString("Finished thread id:");
+        printf("Finished thread id:%d\n", id);
+        /*printString("Finished thread id:");
         printInt(id);
-        printString("\n");
+        printString("\n");*/
 
         finished = true;
     }
@@ -67,9 +66,9 @@ private:
     bool finished;
 };
 
-
+/*
 void userMain() {
-    printInt((char*)HEAP_END_ADDR - (char*)HEAP_START_ADDR);
+    //printf("%d", (char*)HEAP_END_ADDR - (char*)HEAP_START_ADDR);
     ForkThread thread(1);
 
     thread.start();
@@ -79,5 +78,5 @@ void userMain() {
     }
 
     //printf("User main finished\n");
-    printString("User main finished\n");
-}
+    printf("User main finished\n");
+}//*/

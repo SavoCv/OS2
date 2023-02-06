@@ -6,11 +6,12 @@
 #include "../lib/hw.h"
 #include "../h/KConsole.h"
 
+MemoryAllocator* MemoryAllocator::ma = nullptr;
+
 void* MemoryAllocator::operator new(size_t sz) {
     return (void*) HEAP_START_ADDR;
 }
 MemoryAllocator *MemoryAllocator::getAllocator() {
-    static MemoryAllocator *ma = nullptr;
     if(!ma)
         ma = new MemoryAllocator();
     return ma;
@@ -19,8 +20,8 @@ MemoryAllocator *MemoryAllocator::getAllocator() {
 MemoryAllocator::MemoryAllocator() {
     first_free = (Fragment*) ((char*)HEAP_START_ADDR + MEM_BLOCK_SIZE);
     first_free->next = nullptr;
-    //first_free->prev = nullptr;
-    first_free->sz = (char*)HEAP_END_ADDR - (char*)HEAP_START_ADDR;
+    first_free->prev = nullptr;
+    first_free->sz = (char*)HEAP_END_ADDR - (char*)HEAP_START_ADDR - MEM_BLOCK_SIZE;
     first_reserved = nullptr;
 }
 
@@ -31,20 +32,53 @@ void MemoryAllocator::link(Fragment *&list, Fragment* curr, Fragment* prev, Frag
     else
         list = x;
     x->next = curr;
-    /*x->prev = prev;
+    x->prev = prev;
     if(curr)
-        curr->prev = x;*/
+        curr->prev = x;
 }
 
 void MemoryAllocator::unlink(Fragment *& list, Fragment* curr, Fragment* prev){
+    if(!curr)
+        return;
+
+
+
     if(prev)
+    {
         prev->next = curr->next;
+        if(curr->next)
+            prev->next->prev = prev;
+    }
     else
+    {
         list = curr->next;
+        if(list)
+            list->prev = nullptr;
+    }
+
+
+//    if(prev) {
+//        if(curr) {
+//            //curr->prev = prev;
+//            prev->next = curr->next;
+//        }
+//        else {
+//            prev->prev = nullptr;
+//        }
+//    }
+//    else {
+//        if(curr) {
+//            curr->prev = prev;
+//            list = curr->next;
+//        }
+//        else {
+//            list = nullptr;
+//        }
+//    }
 }
 
 void *MemoryAllocator::allocate(size_t vel) {
-    static int cnt = 1;
+    /*static int cnt = 1;
     ++cnt;
     if(cnt % 50 == 0) {
         int broj_frag = 0;
@@ -58,19 +92,19 @@ void *MemoryAllocator::allocate(size_t vel) {
             ++broj_frag;
         KConsole::print(broj_frag);
         KConsole::print("\n");
-    }
+    }//*/
 
-    vel *= MEM_BLOCK_SIZE;
+    vel *= MEM_BLOCK_SIZE;//ne treba 2!!
 
     //best fit - trazenje najmanjeg fragmenta veceg ili jednakoh zadatoj velicini + sizeof(Fragment
     Fragment* curr = first_free, *prev = nullptr, *x;
     lower_bound(first_free, curr, prev, vel);
-    if(!curr || curr->sz < vel)
+    if(!curr || curr->sz + sizeof(Fragment) < vel)
         return nullptr;
 
     //Ulancavanje u listu slobodnih fragmenata
     unlink(first_free, curr, prev);
-    if(curr->sz - vel >= sizeof(Fragment))
+    if(curr->sz - vel > sizeof(Fragment))
     {
         x = (Fragment*)((char*) curr + vel);
         x->sz = curr->sz - vel;
@@ -83,9 +117,10 @@ void *MemoryAllocator::allocate(size_t vel) {
     }
 
     //Ulancavanje u listu alociranih fragmenata
-    Fragment* i, * j;
-    lower_bound(first_reserved, i, j, curr);
-    link(first_reserved, i, j, curr);
+    /*Fragment* i, * j;
+    find(first_reserved, i, j, curr);
+    link(first_reserved, i, j, curr);*/
+    link(first_reserved, first_reserved, nullptr, curr);
 
     //print((void*)((char*) curr + sizeof(Fragment)));
     //printString(" ");
@@ -97,10 +132,14 @@ void *MemoryAllocator::allocate(size_t vel) {
 int MemoryAllocator::free(void *ptr) {
     //Trazenje fragmenta u listi alociranih fragmenata
     Fragment *i = first_reserved, * j = nullptr, *curr, *prev;
-    lower_bound(first_reserved, i, j, (Fragment*)ptr - 1);
-    if(!i || i + 1 != ptr)
+    //find(first_reserved, i, j, (Fragment *) ptr - 1);
+    i = (Fragment *) ptr - 1;
+    if(!i || !ptr || i + 1 != ptr || i < HEAP_START_ADDR || i + i->sz > HEAP_END_ADDR || i->sz > (uint64)HEAP_END_ADDR)
         return -1 ;//ERROR
+    j = i->prev;
     unlink(first_reserved, i, j);
+
+    //return 0; // for debug
 
     //Spajenje novo-slobodnog fragmentima ispred i/ili iza ako moze i izlancavanje istih iz liste slobodnih
     curr = first_free;
@@ -136,11 +175,11 @@ int MemoryAllocator::free(void *ptr) {
     return 0;
 }
 
-void MemoryAllocator::lower_bound(Fragment *list, Fragment *&curr, Fragment *&prev, Fragment* f) {
+void MemoryAllocator::find(Fragment *list, Fragment *&curr, Fragment *&prev, Fragment* f) {
     curr = list;
     prev = nullptr;
     for(; curr; prev = curr, curr = curr->next)
-        if(curr >= f)
+        if(curr == f)
             break;
 }
 

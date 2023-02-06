@@ -41,6 +41,8 @@ public:
 
     int print_error_cache(Cache* cache);
 
+    int shrink_all_caches();
+
     static int strcmp(const char* c1, const char* c2);
 
     /**
@@ -55,6 +57,7 @@ public:
 private:
     Cache* cache_for_caches, *last_cache;
     static const int size_n_caches;
+    static SlabAllocator *ma;
 };
 
 

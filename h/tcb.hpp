@@ -40,12 +40,15 @@ public:
 
     static TCB *running;
 
-    void*  operator new(size_t_ sz);
+    /*void*  operator new(size_t_ sz);
 
-    void operator delete(void * ptr);
+    void operator delete(void * ptr);*/
+
+    void* getContext(){return &context;}
 
 private:
-    TCB(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p = false);
+    //TCB(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p = false);
+    int init(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p = false);
 
     struct Context
     {

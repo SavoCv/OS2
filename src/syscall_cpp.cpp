@@ -24,8 +24,12 @@ void operator delete[](void *p) noexcept
     mem_free(p);
 }
 
-Thread::Thread (void (*body)(void*), void* arg) : body(body), arg(arg)
+Thread::Thread (void (*body)(void*), void* arg)
 {
+    if((uint64) this < 100) // ne moze da se poredi this sa nullptr
+        return;
+    this->body = body;
+    this->arg = arg;
     myHandle = nullptr;
 }
 
@@ -102,3 +106,4 @@ void Console::putc (char c)
 {
     ::putc(c);
 }
+

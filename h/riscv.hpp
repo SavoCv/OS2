@@ -91,7 +91,7 @@ public:
 
     static void returnFromInerrupt();
 
-    static SleepList sl;
+    static SleepList* sl;
 
 private:
 

@@ -2,7 +2,6 @@
 #include "../h/syscall_cpp.hpp"
 #include "printing.hpp"
 
-
 struct thread_data {
     int id;
 };
@@ -22,14 +21,16 @@ public:
         if (threads != nullptr) {
             for (long i = 0; i < id; i++) {
                 threads[i] = new ForkThread(id);
+                if(threads[i] == nullptr)
+                    for(; i < id; ++i)
+                        threads[i] = nullptr;
             }
 
             if (thread != nullptr) {
                 if (thread->start() == 0) {
 
-                    int tmp = 5000; // bilo je 5000, brze se testira sa 5
-                    for (int i = 0; i < tmp; i++) {
-                        for (int j = 0; j < tmp; j++) {
+                    for (int i = 0; i < 5000; i++) {
+                        for (int j = 0; j < 5000; j++) {
 
                         }
                         thread_dispatch();
@@ -68,76 +69,15 @@ private:
 
 
 void userMain() {
-
-    printInt((int)((char*)HEAP_END_ADDR - (char*)HEAP_START_ADDR), 16);
-    //printString("\n");
-
-    //printString("1\n");
-
+    printInt((char*)HEAP_END_ADDR - (char*)HEAP_START_ADDR);
     ForkThread thread(1);
-
-    //printString("2\n");
 
     thread.start();
 
-    //printString("3\n");
-
-    printInt((int)thread.isFinished());
-
     while (!thread.isFinished()) {
-        //printString("A");
         thread_dispatch();
     }
 
     //printf("User main finished\n");
     printString("User main finished\n");
-}//*/
-/*
-#include "../h/KConsole.h"
-
-void userMain()
-{
-    printString("Pocetak\n");
-    constexpr int N_SIZE=5;
-    void *ptrs[N_SIZE];
-    for(int i = 0; i < N_SIZE; ++i) {
-        ptrs[i] = BuddyAllocator::getAllocator()->allocate(i);
-        printInt((int)(long)(ptrs[i]), 16);
-        printString("\n");
-    }
-    printString("Alocirano\n");
-    int tmp;
-    for(int i = 0; i < N_SIZE; ++i) {
-        tmp = BuddyAllocator::getAllocator()->free(ptrs[i], i);
-        printInt(tmp);
-        printString("\n");
-    }
-    printString("Kraj\n");
-}//*/
-/*
-#include "../h/SlabAllocator.h"
-
-void userMain()
-{
-    printString("Pocetak\n");
-    constexpr int N_SIZE=5;
-    void *ptrs[N_SIZE];
-
-    Cache *cache = SlabAllocator::getAllocator()->create_cache("MRK", 32, nullptr, nullptr);
-
-    for(auto & ptr : ptrs) {
-        ptr = SlabAllocator::getAllocator()->alloc(cache);
-        printInt((int)(long)ptr, 16);
-        printString("\n");
-    }
-    printString("Alocirano\n");
-    SlabAllocator::getAllocator()->print_cache_info(cache);
-//    int tmp;
-    for(auto & ptr : ptrs) {
-        SlabAllocator::getAllocator()->free(cache, ptr);
-        //printInt(tmp);
-        //printString("\n");
-    }
-    SlabAllocator::getAllocator()->print_cache_info(cache);
-    printString("Kraj\n");
-}*/
+}

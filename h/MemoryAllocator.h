@@ -29,7 +29,7 @@ private:
     struct Fragment
     {
         size_t sz;
-        Fragment *next;
+        Fragment *next, *prev;
     };
 
     Fragment* first_free, *first_reserved;
@@ -40,9 +40,11 @@ private:
 
     static void unlink(Fragment *& list, Fragment* curr, Fragment* prev);
 
-    static void lower_bound(Fragment* list, Fragment *&curr, Fragment*& prev, Fragment* f);
+    static void find(Fragment* list, Fragment *&curr, Fragment*& prev, Fragment* f);
 
     static void lower_bound(Fragment* list, Fragment *&curr, Fragment*& prev, size_t sz);
+
+    static MemoryAllocator* ma;
 };
 
 

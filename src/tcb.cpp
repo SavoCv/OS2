@@ -11,13 +11,14 @@ TCB *TCB::running = nullptr;
 
 uint64 TCB::timeSliceCounter = 0;
 
-TCB::TCB(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p) :
-    body(body),
-    stack(body != nullptr ? (uint64*) stack_space : nullptr),
-    timeSlice(timeSlice),
-    arg(arg),
-    finished(false)
+int TCB::init(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p)
+
 {
+    this->body = body;
+    stack = body != nullptr ? (uint64*) stack_space : nullptr;
+    this->timeSlice = timeSlice;
+    this->arg = arg;
+    finished = false;
     //print(stack_space);
     //printString(" - \n");
     if (body != nullptr) {
@@ -26,6 +27,8 @@ TCB::TCB(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p) :
     }
 
     context.processorContext = (uint64*) kmem_alloc(32 * sizeof(uint64));
+    if(context.processorContext == nullptr)
+        return -1; //Exception
     if(body != nullptr)
         for(int i = 0; i < 32; ++i)
             context.processorContext[i] = running->context.processorContext[i];
@@ -33,6 +36,7 @@ TCB::TCB(Body body, uint64 timeSlice, void* stack_space, void* arg, bool p) :
     context.sstatus = Riscv::r_sstatus();
     if(p)
         context.sstatus &= ~Riscv::SSTATUS_SPP;
+    return 0;
 }
 
 void TCB::init()
@@ -42,7 +46,17 @@ void TCB::init()
 
 TCB *TCB::createThread(Body body, void* stack_space, void* param)
 {
-    return new TCB(body, TIME_SLICE, stack_space, param);
+    TCB *t = (TCB*)kmem_alloc(sizeof(TCB));
+    if(t == nullptr)
+        return t;
+    if(t->init(body, TIME_SLICE, stack_space, param) != 0){
+        kmem_free(t);
+        return nullptr;
+    }
+            //new TCB(body, TIME_SLICE, stack_space, param);
+    if(t == nullptr || t->context.processorContext == nullptr)
+        return nullptr;
+    return t;
 }
 
 void TCB::yield()
@@ -61,7 +75,8 @@ void TCB::dispatch()
         //printString(">");
     }
     running = Scheduler::get();
-    TCB::contextSwitch(&old->context, &running->context);
+    TCB* tmp = running; // useless just for easier debug
+    TCB::contextSwitch(&old->context, &tmp->context);
 }
 
 void TCB::dispatch_without_puting()
@@ -92,14 +107,14 @@ void TCB::threadWrapper()
     TCB::yield();
 }
 
-void *TCB::operator new(size_t_ sz) {
+/*void *TCB::operator new(size_t_ sz) {
     return kmem_alloc(sz);
 }
 
 void TCB::operator delete(void * ptr)
 {
     kmem_free(ptr);
-}
+}*/
 
 void TCB::contextSwitch(TCB::Context *oldContext, TCB::Context *runningContext) {
     oldContext->sepc = Riscv::r_sepc();

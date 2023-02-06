@@ -12,18 +12,21 @@ using size_t_ = decltype(sizeof(0));
 
 class KSemaphore{
 public:
-    KSemaphore(unsigned init);
+    //KSemaphore(unsigned init);
+    int init(unsigned init_val);
+    static KSemaphore* produce(unsigned init_val);
     ~KSemaphore();
     int wait();
     int kwait();
     int signal();
-    void*  operator new(size_t_ sz);
-    void operator delete(void * ptr);
+    //void*  operator new(size_t_ sz);
+    //void operator delete(void * ptr);
+    bool initPassed();
 
 private:
 
     int val;
-    List <TCB> blocked;
+    List <TCB> *blocked;
     volatile int deleted = 0;//Maybe without volatile
 };
 

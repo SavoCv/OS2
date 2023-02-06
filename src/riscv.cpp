@@ -12,7 +12,7 @@
 void* Riscv::sysStack = nullptr;
 void* Riscv::initialSysStack = nullptr;
 uint64* Riscv::processorContext = nullptr;
-SleepList Riscv::sl;
+SleepList* Riscv::sl;
 
 void Riscv::init(void (*idle)(void* ), thread_t& idle_t)
 {
@@ -23,6 +23,7 @@ void Riscv::init(void (*idle)(void* ), thread_t& idle_t)
     w_stvec((uint64) &supervisorTrap);
     thread_create(&idle_t, idle, nullptr);
     KConsole::init();
+    sl = SleepList::produce();
     Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 }
 
@@ -95,7 +96,12 @@ void Riscv::popSppSpie()
 void Riscv::handle_sem_create()
 {
     sem_t *handle = (sem_t *)processorContext[11];
-    *handle = new KSemaphore((unsigned) processorContext[12]);
+    //KSemaphore *ks =  new KSemaphore((unsigned) processorContext[12]);
+    KSemaphore *ks =  KSemaphore::produce((unsigned) processorContext[12]);
+    if(ks->initPassed())
+        *handle = ks;
+    else
+        *handle = nullptr;
     processorContext[10] = 0;
 }
 
@@ -121,7 +127,8 @@ void Riscv::handle_sem_signal()
 void Riscv::handle_time_sleep()
 {
     time_t time = processorContext[11];
-    sl.add(new TCBAndTime(TCB::running, time));
+    TCBAndTime* tat = TCBAndTime::produce(TCB::running, time);
+    sl->add(tat);
     TCB::dispatch_without_puting();
     processorContext[10] = 0;
 }
@@ -200,22 +207,21 @@ void Riscv::handleSupervisorTrap()
         }
         w_sstatus(TCB::running->context.sstatus);
         w_sepc(TCB::running->context.sepc);
-
     } else if (scause == 0x8000000000000001UL)
     {
         // interrupt: yes; cause code: supervisor software interrupt (CLINT; machine timer interrupt)
         TCB::timeSliceCounter++;
         TCBAndTime *tat;
-        tat = sl.peekFirst();
+        tat = sl->peekFirst();
         if(tat)
             --tat->d;
         while(tat && tat->d == 0)
         {
-            tat = sl.removeFirst();
+            tat = sl->removeFirst();
             if(!tat->t->isFinished())
                 Scheduler::put(tat->t);
             delete tat;
-            tat = sl.peekFirst();
+            tat = sl->peekFirst();
         }
         if (TCB::timeSliceCounter >= TCB::running->getTimeSlice())
         {
@@ -243,16 +249,16 @@ void Riscv::handleSupervisorTrap()
     } else
     {
         // unexpected trap cause
-        uint64 sepc = r_sepc();
+        void* sepc = (void*) r_sepc();
         KConsole::print("ERROR: Unexpected trap cause: scause=");
         KConsole::print(scause);
         KConsole::print(", sepc=");
-        KConsole::print_hex(sepc);
+        KConsole::print_hex((long) sepc);
         KConsole::print("\nstval: ");
         uint64 stval = (long)r_stval();
         KConsole::print_hex(stval);
         KConsole::print("\n");
         KConsole::console_handler();
-        w_sepc(sepc);
+        w_sepc((uint64) sepc + 4);
     }
 }

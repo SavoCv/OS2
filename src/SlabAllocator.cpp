@@ -7,9 +7,10 @@
 #include "../h/utils.h"
 
 const int SlabAllocator::size_n_caches = 0;
+SlabAllocator* SlabAllocator::ma = nullptr;
 
 SlabAllocator *SlabAllocator::getAllocator() {
-    static SlabAllocator *ma = nullptr;
+    //static SlabAllocator *ma = nullptr;
     if(!ma)
         ma = (SlabAllocator*) MemoryAllocator::getAllocator()->allocate(sizeof(SlabAllocator));
     return ma;
@@ -109,10 +110,15 @@ void* SlabAllocator::kmalloc(size_t size){
     if(rs < 32)
         rs = 32;
 
-    char *name = (char*) MemoryAllocator::getAllocator()->allocate(20);
+    static Cache *cache_for_names = SlabAllocator::create_cache("for_size-n_names", 20, nullptr, nullptr);
+    char *name = (char*) alloc(cache_for_names);
+            //MemoryAllocator::getAllocator()->allocate(20);
+    if(name == nullptr)
+        return nullptr;
     strcpy(name, "size-");
     itos(rs, name + 5);
     Cache *cache = create_cache(name, rs, nullptr, nullptr);
+    free(cache_for_names, name);
     if(cache == nullptr) {
         KConsole::print("ERROR: SlabAllocator failed to allocate new cache\n");
         KConsole::console_handler();
@@ -169,3 +175,9 @@ int kmem_free(void* ptr)
     return SlabAllocator::getAllocator()->kfree(ptr);
 }
 
+int SlabAllocator::shrink_all_caches() {
+    int cnt = 0;
+    for(Cache* curr = cache_for_caches; curr; curr = curr->next)
+        cnt += curr->shrink();
+    return cnt;
+}

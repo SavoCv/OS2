@@ -18,13 +18,13 @@ sem_t input_ready;
 
 void KConsole::init()
 {
-    output_ready = new KSemaphore(0);
-    input_ready = new KSemaphore(0);
+    output_ready = KSemaphore::produce(0);
+    input_ready = KSemaphore::produce(0);
     //sem_open(&input_ready, 0);
     thr_t = TCB::createThread(console_thread, kmem_alloc(DEFAULT_STACK_SIZE), nullptr);
     //thread_create(&thr_t, console_thread, nullptr);
-    output_buffer_p = new List<char>();
-    input_buffer_p = new List<char>();
+    output_buffer_p = List<char>::produce();
+    input_buffer_p = List<char>::produce();
 }
 
 void KConsole::putc(char c)
@@ -33,6 +33,8 @@ void KConsole::putc(char c)
     if(c == '\r')
         c = '\n';
     char *pc = (char*) kmem_alloc(sizeof(char));
+    if(pc == nullptr)
+        return; // Exception
     *pc = c;
     output_buffer_p->addLast(pc);
     output_ready->signal();
@@ -55,8 +57,10 @@ void KConsole::aux()
     char* cs = (char*) CONSOLE_STATUS;
     if (*cs & CONSOLE_RX_STATUS_BIT) {
         while (*cs & CONSOLE_RX_STATUS_BIT) {
-            char *drx = (char *) CONSOLE_RX_DATA;
             char *tmp = (char *) kmem_alloc(sizeof(char));
+            if(tmp == nullptr)
+                break;
+            char *drx = (char *) CONSOLE_RX_DATA;
             *tmp = *drx;
             input_buffer_p->addLast(tmp);
             input_ready->signal();
@@ -101,6 +105,8 @@ void KConsole::print(const char * const s) {
 void KConsole::print(const int n) {
     char *buff = (char*) kmem_alloc(20);
             //SlabAllocator::getAllocator()->kmalloc(20);
+    if(buff == nullptr)
+        return; //Exception
     char *p = buff + 19;
     int nc = n;
     *p = 0;
@@ -121,6 +127,8 @@ void KConsole::println(T s) {
 void KConsole::print_hex(const long n) {
     char *buff = (char*) kmem_alloc(20);
             //SlabAllocator::getAllocator()->kmalloc(20);
+    if(buff == nullptr)
+        return; //Exception
     char *p = buff + 19;
     long nc = n;
     *p = 0;

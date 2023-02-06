@@ -23,37 +23,59 @@ protected:
 
         Elem(T *data, Elem *next) : data(data), next(next) {}
 
-        void*  operator new(size_t_ sz){
+        /*void*  operator new(size_t_ sz){
             return kmem_alloc(sz);
         }
 
         void operator delete(void * ptr){
             kmem_free(ptr);
-        }
+        }*/
     };
 
     Elem *head, *tail;
 
 public:
-    List() : head(0), tail(0) {}
+    //List() : head(0), tail(0) {}
+
+    int init(){
+        head = 0;
+        tail = 0;
+        return 0;
+    }
+
+    static List<T>* produce()
+    {
+        List<T>* tmp = (List<T>*) kmem_alloc(sizeof(List<T>));
+        if(tmp == nullptr)
+            return nullptr;
+        tmp->init();
+        return tmp;
+    }
 
     List(const List<T> &) = delete;
 
     List<T> &operator=(const List &) = delete;
 
-    __attribute__((noinline)) void addFirst(T *data)
+    __attribute__((noinline)) int addFirst(T *data)
     {
         Elem *elem = (Elem*) kmem_alloc(sizeof(Elem));
+        if(elem == nullptr)
+            return -1; // Exception
         elem->data = data;
         elem->next = head;
 
         head = elem;
         if (!tail) { tail = head; }
+        return 0;
     }
 
-    __attribute__((noinline)) void addLast(T *data)
+    __attribute__((noinline)) int addLast(T *data)
     {
+        if(data == nullptr)
+            return -1;
         Elem *elem = (Elem*)kmem_alloc(sizeof(Elem));
+        if(elem == nullptr)
+            return -1; //Exception
         elem->data = data;
         elem->next = 0;
         if (tail)
@@ -64,11 +86,14 @@ public:
         {
             head = tail = elem;
         }
+        return 0;
     }
 
     __attribute__((noinline)) T *removeFirst()
     {
-        if (!head) { return 0; }
+        if (!head) {
+            return 0;
+        }
 
         Elem *elem = head;
         head = head->next;
@@ -121,13 +146,13 @@ public:
         return n == 0;
     }
 
-    void*  operator new(size_t_ sz){
+    /*void*  operator new(size_t_ sz){
         return kmem_alloc(sz);
     }
 
     void operator delete(void * ptr){
         kmem_free(ptr);
-    }
+    }*/
 };
 
 #endif //OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_LIST_HPP

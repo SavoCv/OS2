@@ -3,8 +3,10 @@
 //
 
 #include "../h/scheduler.hpp"
+#include "../h/KConsole.h"
 
-List<TCB>* Scheduler::readyThreadQueue_p = new List<TCB>();
+List<TCB>* Scheduler::readyThreadQueue_p = List<TCB>::produce();
+        //new List<TCB>();
 
 TCB *Scheduler::get()
 {
@@ -14,10 +16,17 @@ TCB *Scheduler::get()
 void Scheduler::put(TCB *ccb)
 {
     if(!readyThreadQueue_p)
-        readyThreadQueue_p = new List<TCB>();
+        readyThreadQueue_p = List<TCB>::produce();
+                //new List<TCB>();
     //printString("#");
     //println((void*)&readyThreadQueue);
-    readyThreadQueue_p->addLast(ccb);
+    if(readyThreadQueue_p->addLast(ccb) != 0) {
+        SlabAllocator::getAllocator()->shrink_all_caches();
+        if(readyThreadQueue_p->addLast(ccb) != 0)
+        {
+            KConsole::print("Bez memorije");
+        }
+    }
     //printString("$");
 }
 
